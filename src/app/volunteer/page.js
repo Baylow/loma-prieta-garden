@@ -86,18 +86,18 @@ export default function Volunteer() {
               {!selectedShift ? (
                 <ul className={styles.shiftList}>
                   <li>
-                    <div className="flex-col">
+                    <div className="flex flex-col">
                       <strong>Morning Watering</strong>
                       <span className="text-muted" style={{ fontSize: '0.875rem' }}>8:00 AM - 9:00 AM</span>
                     </div>
-                    <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }} onClick={() => handleSignUpClick('Morning Watering', '8:00 AM - 9:00 AM')}>Sign Up</button>
+                    <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', whiteSpace: 'nowrap' }} onClick={() => handleSignUpClick('Morning Watering', '8:00 AM - 9:00 AM')}>Sign Up</button>
                   </li>
                   <li>
-                    <div className="flex-col">
+                    <div className="flex flex-col">
                       <strong>Weeding & Maintenance</strong>
                       <span className="text-muted" style={{ fontSize: '0.875rem' }}>3:00 PM - 4:30 PM</span>
                     </div>
-                    <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }} onClick={() => handleSignUpClick('Weeding & Maintenance', '3:00 PM - 4:30 PM')}>Sign Up</button>
+                    <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', whiteSpace: 'nowrap' }} onClick={() => handleSignUpClick('Weeding & Maintenance', '3:00 PM - 4:30 PM')}>Sign Up</button>
                   </li>
                 </ul>
               ) : (
