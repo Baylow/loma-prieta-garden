@@ -17,8 +17,9 @@
 
 .logo {
   font-family: var(--font-work-sans);
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 2rem; /* Increased size for readability */
+  font-weight: 800; /* Extra bold */
+  letter-spacing: -0.5px;
   color: var(--text-light);
   z-index: 101;
 }
