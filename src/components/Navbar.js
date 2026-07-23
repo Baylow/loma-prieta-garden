@@ -13,7 +13,10 @@ export default function Navbar() {
     <header className={styles.header}>
       <div className={`container ${styles.navContainer}`}>
         <div className={styles.logo}>
-          <Link href="/" onClick={closeMenu}>Loma<span className={styles.highlight}>Garden</span></Link>
+          <Link href="/" onClick={closeMenu}>
+            <img src="/images/cougar_logo.jpg" alt="Cougar Mascot" className={styles.logoImage} />
+            Loma<span className={styles.highlight}>Garden</span>
+          </Link>
         </div>
         
         <button className={styles.hamburger} onClick={toggleMenu} aria-label="Toggle menu">

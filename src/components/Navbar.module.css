@@ -24,7 +24,18 @@
 }
 
 .logo a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   color: var(--text-light);
+}
+
+.logoImage {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--text-light);
 }
 
 .logo a:hover {
