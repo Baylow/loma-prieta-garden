@@ -12,6 +12,7 @@
   justify-content: space-between;
   align-items: center;
   height: 80px;
+  position: relative;
 }
 
 .logo {
@@ -19,6 +20,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-light);
+  z-index: 101;
 }
 
 .highlight {
@@ -28,15 +30,88 @@
 .navLinks {
   display: flex;
   gap: 2rem;
+  align-items: center;
 }
 
 .navLinks a {
   font-weight: 500;
   color: var(--text-light);
   opacity: 0.9;
+  transition: color 0.3s ease, opacity 0.3s ease;
 }
 
 .navLinks a:hover {
   color: var(--teal);
   opacity: 1;
+}
+
+/* Hamburger button styles */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 101;
+}
+
+.bar {
+  width: 30px;
+  height: 3px;
+  background-color: var(--text-light);
+  border-radius: 10px;
+  transition: all 0.3s linear;
+  position: relative;
+  transform-origin: 1px;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 900px) {
+  .hamburger {
+    display: flex;
+  }
+
+  .navLinks {
+    position: absolute;
+    top: 100%; /* Just below the header */
+    left: 0;
+    width: 100%;
+    background-color: var(--primary-purple);
+    flex-direction: column;
+    padding: 2rem 0;
+    gap: 1.5rem;
+    
+    /* Animation initial state */
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease-in-out;
+    
+    border-bottom: 4px solid var(--sapphire-blue);
+    box-shadow: var(--shadow-md);
+  }
+
+  .navLinks.showMenu {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .navLinks a {
+    font-size: 1.25rem;
+  }
+
+  /* Hamburger Animation */
+  .bar.open:nth-child(1) {
+    transform: rotate(45deg);
+  }
+  .bar.open:nth-child(2) {
+    opacity: 0;
+  }
+  .bar.open:nth-child(3) {
+    transform: rotate(-45deg);
+  }
 }
