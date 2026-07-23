@@ -23,6 +23,15 @@
   z-index: 101;
 }
 
+.logo a {
+  color: var(--text-light);
+}
+
+.logo a:hover {
+  color: var(--text-light);
+  opacity: 0.9;
+}
+
 .highlight {
   color: var(--teal);
 }
