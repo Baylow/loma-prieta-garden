@@ -14,8 +14,7 @@ export default function Navbar() {
       <div className={`container ${styles.navContainer}`}>
         <div className={styles.logo}>
           <Link href="/" onClick={closeMenu}>
-            <img src="/images/cougar_logo.jpg" alt="Cougar Mascot" className={styles.logoImage} />
-            Loma<span className={styles.highlight}>Garden</span>
+            <img src="/images/wordmark.jpg" alt="Loma Garden Logo" className={styles.logoImage} />
           </Link>
         </div>
         

@@ -31,11 +31,10 @@
 }
 
 .logoImage {
-  height: 40px;
-  width: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--text-light);
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 4px;
 }
 
 .logo a:hover {
