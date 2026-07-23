@@ -1,0 +1,148 @@
+:root {
+  /* Loma Prieta Core Branding */
+  --primary-purple: #662e80;
+  --primary-purple-hover: #473152;
+  --sapphire-blue: #004b8d;
+  --sapphire-blue-hover: #1a3f60;
+  --teal: #3bb5b5;
+  --teal-hover: #3aa8a8;
+  --orange: #f37366;
+  --orange-hover: #df6c61;
+  --tan: #f4e3ce;
+  
+  /* Neutrals */
+  --background-light: #f8f6fc; /* Very light purple tint */
+  --surface-light: #ffffff;
+  --text-dark: #333333;
+  --text-light: #ffffff;
+  --text-muted: #747474;
+
+  /* UI properties */
+  --shadow-sm: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0px 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0px 10px 25px rgba(0, 0, 0, 0.15);
+  --radius-md: 8px; /* Slightly sharper for school theme */
+  --radius-lg: 16px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-inter), sans-serif;
+  background-color: var(--background-light);
+  color: var(--text-dark);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-work-sans), sans-serif;
+  font-weight: 700;
+  color: var(--sapphire-blue);
+  margin-bottom: 1rem;
+}
+
+a {
+  color: var(--sapphire-blue);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--primary-purple);
+}
+
+/* Base button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+  font-family: var(--font-inter);
+}
+
+.btn-primary {
+  background-color: var(--primary-purple);
+  color: var(--text-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-purple-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  color: var(--text-light);
+}
+
+.btn-secondary {
+  background-color: var(--teal);
+  color: var(--text-light);
+}
+
+.btn-secondary:hover {
+  background-color: var(--teal-hover);
+  transform: translateY(-2px);
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 75, 141, 0.1);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Utilities */
+.text-center { text-align: center; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-8 { margin-top: 2rem; }
+
+/* Flexbox utilities */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.gap-2 { gap: 0.5rem; }
+.gap-4 { gap: 1rem; }
+.gap-8 { gap: 2rem; }
+
+/* Micro-animations */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.8s ease forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease forwards;
+}
