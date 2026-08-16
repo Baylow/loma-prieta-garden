@@ -15,9 +15,6 @@ export default function Footer() {
           <Link href="/register">Register to Volunteer</Link>
         </div>
       </div>
-      <div className={styles.copyright}>
-        <p>&copy; {new Date().getFullYear()} Loma Prieta Joint Union School District.</p>
-      </div>
     </footer>
   );
 }
