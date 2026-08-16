@@ -1,13 +1,22 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import styles from './page.module.css';
+import { createClient } from '@/utils/supabase/server';
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient()
+  
+  // Fetch site content
+  const { data: siteContent } = await supabase.from('site_content').select('*')
+  const homepageMission = siteContent?.find(c => c.id === 'homepage_mission')?.content || 'The Loma Prieta School Garden is a living classroom where students learn hands-on about agriculture, science, and the environment. We rely on parent volunteers to keep the garden thriving!'
+  const homepageHero = siteContent?.find(c => c.id === 'homepage_hero')?.content || 'Growing Minds, One Seed at a Time'
+
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
         <div className={`container ${styles.heroContent} animate-fade-in-up`}>
-          <h1>Growing Our Future</h1>
-          <p>Welcome to the Loma Prieta School Garden Project. A space for learning, connecting, and growing together.</p>
+          <h1>{homepageHero}</h1>
+          <p>{homepageMission}</p>
           <div className={styles.ctaGroup}>
             <Link href="/volunteer" className="btn btn-primary">Get Involved</Link>
             <Link href="/donate" className="btn btn-secondary">Support Us</Link>
