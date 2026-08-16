@@ -30,8 +30,8 @@ export default function Navbar() {
           <Link href="/about" onClick={closeMenu}>About</Link>
           <Link href="/growing" onClick={closeMenu}>What's Growing</Link>
           <Link href="/curriculum" onClick={closeMenu}>Curriculum</Link>
-          <Link href="/volunteer" onClick={closeMenu}>Volunteer</Link>
-          <Link href="/donate" onClick={closeMenu}>Donate</Link>
+          <Link href="/volunteer" onClick={closeMenu}>Volunteer Shifts</Link>
+          <Link href="/register" onClick={closeMenu}>Register to Volunteer</Link>
           <Link href="/updates" onClick={closeMenu}>Updates</Link>
         </nav>
       </div>

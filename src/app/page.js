@@ -19,7 +19,7 @@ export default async function Home() {
           <p>{homepageMission}</p>
           <div className={styles.ctaGroup}>
             <Link href="/volunteer" className="btn btn-primary">Get Involved</Link>
-            <Link href="/donate" className="btn btn-secondary">Support Us</Link>
+            <Link href="/register" className="btn btn-secondary">Volunteer</Link>
           </div>
         </div>
       </section>
