@@ -2,16 +2,30 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
-export async function saveProfile(formData) {
+export async function registerAndOnboard(formData) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    return { error: 'Not authenticated' }
+  const email = formData.get('email')
+  const password = formData.get('password')
+
+  // 1. Sign up the user
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+  })
+
+  if (authError) {
+    return { error: authError.message }
   }
 
-  // Parse availability (Sun-Sat, Morning/Afternoon)
+  const user = authData.user
+  if (!user) {
+    return { error: 'Failed to create user account.' }
+  }
+
+  // 2. Parse availability
   const availability = {
     sunday: { morning: formData.get('sun_m') === 'on', afternoon: formData.get('sun_a') === 'on' },
     monday: { morning: formData.get('mon_m') === 'on', afternoon: formData.get('mon_a') === 'on' },
@@ -22,8 +36,9 @@ export async function saveProfile(formData) {
     saturday: { morning: formData.get('sat_m') === 'on', afternoon: formData.get('sat_a') === 'on' },
   }
 
+  // 3. Build profile data
   const profileData = {
-    id: user.id, // Primary key linking to auth.users
+    id: user.id,
     name: formData.get('name'),
     email: user.email,
     phone: formData.get('phone'),
@@ -33,16 +48,23 @@ export async function saveProfile(formData) {
     volunteer_type: formData.get('volunteer_type'),
     training_interest: formData.get('training_interest') === 'yes',
     class_info: formData.get('class_info'),
-    role: 'volunteer', // Default role
-    onboarded: true, // Flag to indicate they finished onboarding
+    role: 'volunteer',
+    onboarded: true,
+    photo_url: formData.get('photo_url') || null,
+    bio: formData.get('bio') || null,
+    relationship: formData.get('relationship') || null,
+    kids_names: formData.get('kids_names') || null,
   }
 
-  const { error } = await supabase.from('profiles').upsert(profileData)
+  // 4. Insert profile
+  const { error: profileError } = await supabase.from('profiles').upsert(profileData)
 
-  if (error) {
-    console.error('Error saving profile:', error)
-    return { error: 'Failed to save profile. Please try again.' }
+  if (profileError) {
+    console.error('Error saving profile:', profileError)
+    // Even if profile fails, account is created, so redirect them so they can at least log in later.
+    return { error: 'Account created, but failed to save profile data. Please try logging in and updating your profile later.' }
   }
 
+  revalidatePath('/', 'layout')
   redirect('/profile')
 }

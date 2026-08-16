@@ -14,8 +14,13 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
 
-  if (!profile || !profile.onboarded) {
-    redirect('/onboarding')
+  if (!profile) {
+    return (
+      <div className="container mt-8 text-center">
+        <h1>Profile Not Found</h1>
+        <p>Please contact an administrator.</p>
+      </div>
+    )
   }
 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -30,11 +35,27 @@ export default async function ProfilePage() {
       </div>
       
       <div className="glass-panel" style={{ padding: '2rem' }}>
+        {/* Personal Details Section */}
+        <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '2rem' }}>
+          {profile.photo_url && (
+            <div style={{ flexShrink: 0 }}>
+              <img src={profile.photo_url} alt="Profile Photo" style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--teal)' }} />
+            </div>
+          )}
+          <div style={{ flex: 1 }}>
+            <h2 style={{ marginBottom: '0.5rem', color: 'var(--primary-purple)' }}>{profile.name}</h2>
+            {profile.bio && <p style={{ fontStyle: 'italic', color: '#666', marginBottom: '1rem' }}>"{profile.bio}"</p>}
+            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+              {profile.relationship && <p><strong>Relationship:</strong> {profile.relationship}</p>}
+              {profile.kids_names && <p><strong>Kids:</strong> {profile.kids_names}</p>}
+            </div>
+          </div>
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
           
           <div>
             <h3 style={{ color: 'var(--teal)', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Contact Info</h3>
-            <p><strong>Name:</strong> {profile.name}</p>
             <p><strong>Email:</strong> {profile.email}</p>
             <p><strong>Phone:</strong> {profile.phone}</p>
             <p><strong>Preferred Contact:</strong> <span style={{ textTransform: 'capitalize' }}>{profile.contact_preference}</span></p>

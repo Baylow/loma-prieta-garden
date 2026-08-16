@@ -37,7 +37,7 @@ export async function updateSession(request) {
 
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
-  const isProfileRoute = request.nextUrl.pathname.startsWith('/profile') || request.nextUrl.pathname.startsWith('/onboarding')
+  const isProfileRoute = request.nextUrl.pathname.startsWith('/profile')
 
   if (!user && (isAdminRoute || isProfileRoute)) {
     // no user, potentially respond by redirecting the user to the login page
