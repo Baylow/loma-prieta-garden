@@ -61,8 +61,8 @@ export async function registerAndOnboard(formData) {
 
   if (profileError) {
     console.error('Error saving profile:', profileError)
-    // Even if profile fails, account is created, so redirect them so they can at least log in later.
-    return { error: 'Account created, but failed to save profile data. Please try logging in and updating your profile later.' }
+    // Exposing the exact database error to the UI for debugging
+    return { error: `Database Error: ${profileError.message} ${profileError.details || ''}` }
   }
 
   revalidatePath('/', 'layout')
