@@ -30,9 +30,19 @@ CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 
 -- Allow admins to view all profiles
-CREATE POLICY "Admins can view all profiles" ON profiles FOR SELECT USING (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin'
-);
+-- First create a secure function to check admin status
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'
+  );
+$$;
+
+CREATE POLICY "Admins can view all profiles" ON profiles FOR SELECT USING (is_admin());
 
 
 -- 2. Create the site_content table (for CMS)
@@ -50,9 +60,7 @@ INSERT INTO site_content (id, content) VALUES
 -- Public can view site content
 ALTER TABLE site_content ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view site content" ON site_content FOR SELECT USING (true);
-CREATE POLICY "Admins can update site content" ON site_content FOR UPDATE USING (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin'
-);
+CREATE POLICY "Admins can update site content" ON site_content FOR UPDATE USING (is_admin());
 
 
 -- 3. Create the updates table (for news/announcements CMS)
@@ -69,9 +77,7 @@ INSERT INTO updates (title, body, author) VALUES
 
 ALTER TABLE updates ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view updates" ON updates FOR SELECT USING (true);
-CREATE POLICY "Admins can manage updates" ON updates FOR ALL USING (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin'
-);
+CREATE POLICY "Admins can manage updates" ON updates FOR ALL USING (is_admin());
 
 
 -- 4. Create the garden_beds table (for "What's Growing" CMS)
@@ -91,6 +97,4 @@ INSERT INTO garden_beds (bed_number, plant_name, description, harvest_date, imag
 
 ALTER TABLE garden_beds ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view garden beds" ON garden_beds FOR SELECT USING (true);
-CREATE POLICY "Admins can manage garden beds" ON garden_beds FOR ALL USING (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin'
-);
+CREATE POLICY "Admins can manage garden beds" ON garden_beds FOR ALL USING (is_admin());
