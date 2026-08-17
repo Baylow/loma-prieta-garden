@@ -14,6 +14,10 @@ CREATE TABLE profiles (
   class_info text,
   role text DEFAULT 'volunteer',
   onboarded boolean DEFAULT false,
+  photo_url text,
+  bio text,
+  relationship text,
+  kids_names text,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
