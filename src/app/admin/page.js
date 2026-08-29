@@ -13,6 +13,10 @@ export default function AdminDashboard() {
           <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Site Content</h3>
           <p style={{ fontSize: '0.875rem' }} className="text-muted">Edit the homepage mission statement and announcements.</p>
         </div>
+        <div style={{ padding: '1.5rem', backgroundColor: '#f8f6fc', borderRadius: '8px', border: '1px solid rgba(102, 46, 128, 0.1)' }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Schedule & Shifts</h3>
+          <p style={{ fontSize: '0.875rem' }} className="text-muted">Manage daily 45-min class blocks and special events.</p>
+        </div>
       </div>
     </div>
   )

@@ -54,6 +54,11 @@ export default async function AdminLayout({ children }) {
                 Manage Garden Beds
               </Link>
             </li>
+            <li>
+              <Link href="/admin/schedule" style={{ display: 'block', padding: '0.75rem', borderRadius: '4px', fontWeight: '500' }}>
+                Manage Schedule
+              </Link>
+            </li>
           </ul>
         </div>
         

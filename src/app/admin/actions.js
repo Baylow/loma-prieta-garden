@@ -130,11 +130,23 @@ export async function createShift(formData) {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return { error: 'Not authorized' }
 
+  let startTime = formData.get('start_time')
+  let endTime = formData.get('end_time')
+  
+  // If it comes from datetime-local input, it won't have a timezone (length 16 like YYYY-MM-DDTHH:MM)
+  // We parse it into a local Date object, then get the UTC ISO string to save to the DB
+  if (startTime && startTime.length <= 16) {
+    startTime = new Date(startTime).toISOString()
+  }
+  if (endTime && endTime.length <= 16) {
+    endTime = new Date(endTime).toISOString()
+  }
+
   const shiftData = {
     title: formData.get('title'),
     description: formData.get('description'),
-    start_time: formData.get('start_time'),
-    end_time: formData.get('end_time'),
+    start_time: startTime,
+    end_time: endTime,
     type: formData.get('type'),
     max_volunteers: parseInt(formData.get('max_volunteers') || '2', 10),
   }
