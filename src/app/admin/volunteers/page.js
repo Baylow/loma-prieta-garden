@@ -1,8 +1,13 @@
 import { createClient } from '@/utils/supabase/server'
+import { promoteToAdmin, revokeAdmin } from '../actions'
 
 export default async function VolunteersAdminPage() {
   const supabase = await createClient()
   
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: currentUserProfile } = await supabase.from('profiles').select('email').eq('id', user?.id).single()
+  const isSuperAdmin = currentUserProfile?.email === 'baylow@gmail.com'
+
   // Fetch all profiles
   const { data: volunteers } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
 
@@ -24,7 +29,7 @@ export default async function VolunteersAdminPage() {
                 <th style={{ padding: '1rem 0.5rem' }}>Role Type</th>
                 <th style={{ padding: '1rem 0.5rem' }}>Class Info</th>
                 <th style={{ padding: '1rem 0.5rem' }}>Avail. Hours</th>
-                <th style={{ padding: '1rem 0.5rem' }}>Training?</th>
+                {isSuperAdmin && <th style={{ padding: '1rem 0.5rem' }}>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -50,6 +55,21 @@ export default async function VolunteersAdminPage() {
                   <td style={{ padding: '1rem 0.5rem' }}>{v.class_info}</td>
                   <td style={{ padding: '1rem 0.5rem' }}>{v.hours_per_month}</td>
                   <td style={{ padding: '1rem 0.5rem' }}>{v.training_interest ? 'Yes' : 'No'}</td>
+                  {isSuperAdmin && (
+                    <td style={{ padding: '1rem 0.5rem' }}>
+                      {v.role !== 'admin' ? (
+                        <form action={promoteToAdmin}>
+                          <input type="hidden" name="id" value={v.id} />
+                          <button type="submit" className="btn btn-primary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>Make Admin</button>
+                        </form>
+                      ) : (
+                        <form action={revokeAdmin}>
+                          <input type="hidden" name="id" value={v.id} />
+                          <button type="submit" className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>Revoke Admin</button>
+                        </form>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

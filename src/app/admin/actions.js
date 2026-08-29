@@ -241,3 +241,41 @@ export async function bulkCreateShifts(formData) {
   return { success: true }
 }
 
+export async function promoteToAdmin(formData) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('email').eq('id', user.id).single()
+  
+  if (profile?.email !== 'baylow@gmail.com') return { error: 'Not authorized' }
+
+  const id = formData.get('id')
+  
+  const { error } = await supabase.from('profiles').update({ role: 'admin' }).eq('id', id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin/volunteers')
+  return { success: true }
+}
+
+export async function revokeAdmin(formData) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('email').eq('id', user.id).single()
+  
+  if (profile?.email !== 'baylow@gmail.com') return { error: 'Not authorized' }
+
+  const id = formData.get('id')
+  
+  const { error } = await supabase.from('profiles').update({ role: 'volunteer' }).eq('id', id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin/volunteers')
+  return { success: true }
+}
+
