@@ -102,3 +102,23 @@ export async function deleteGardenBed(formData) {
   return { success: true }
 }
 
+export async function updateBedGrid(id, gridData) {
+  const supabase = await createClient()
+
+  // Verify Admin
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const { error } = await supabase.from('garden_beds').update({ grid_data: gridData }).eq('id', id)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/growing')
+  revalidatePath('/admin/growing')
+  return { success: true }
+}
+
