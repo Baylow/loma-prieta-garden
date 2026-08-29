@@ -122,3 +122,110 @@ export async function updateBedGrid(id, gridData) {
   return { success: true }
 }
 
+export async function createShift(formData) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const shiftData = {
+    title: formData.get('title'),
+    description: formData.get('description'),
+    start_time: formData.get('start_time'),
+    end_time: formData.get('end_time'),
+    type: formData.get('type'),
+    max_volunteers: parseInt(formData.get('max_volunteers') || '2', 10),
+  }
+
+  const { error } = await supabase.from('shifts').insert([shiftData])
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/schedule')
+  revalidatePath('/admin/schedule')
+  return { success: true }
+}
+
+export async function deleteShift(formData) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const id = formData.get('id')
+  
+  const { error } = await supabase.from('shifts').delete().eq('id', id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/schedule')
+  revalidatePath('/admin/schedule')
+  return { success: true }
+}
+
+export async function bulkCreateShifts(formData) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const title = formData.get('title')
+  const description = formData.get('description')
+  const type = formData.get('type')
+  const max_volunteers = parseInt(formData.get('max_volunteers') || '2', 10)
+  
+  const startDateStr = formData.get('start_date') // YYYY-MM-DD
+  const endDateStr = formData.get('end_date') // YYYY-MM-DD
+  const startTimeStr = formData.get('start_time') // HH:MM
+  const endTimeStr = formData.get('end_time') // HH:MM
+  
+  const daysOfWeek = formData.getAll('days_of_week') // Array of '0' (Sun) to '6' (Sat)
+
+  if (!startDateStr || !endDateStr || !startTimeStr || !endTimeStr || daysOfWeek.length === 0) {
+    return { error: 'Missing required fields' }
+  }
+
+  const startDate = new Date(startDateStr + 'T00:00:00')
+  const endDate = new Date(endDateStr + 'T23:59:59')
+  
+  const shiftsToInsert = []
+  
+  let currentDate = new Date(startDate)
+  while (currentDate <= endDate) {
+    const dayOfWeek = currentDate.getDay().toString()
+    if (daysOfWeek.includes(dayOfWeek)) {
+      const dateString = currentDate.toISOString().split('T')[0]
+      const startDateTime = new Date(`${dateString}T${startTimeStr}:00`)
+      const endDateTime = new Date(`${dateString}T${endTimeStr}:00`)
+      
+      shiftsToInsert.push({
+        title,
+        description,
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
+        type,
+        max_volunteers
+      })
+    }
+    currentDate.setDate(currentDate.getDate() + 1)
+  }
+
+  if (shiftsToInsert.length === 0) {
+    return { error: 'No dates matched the selected criteria' }
+  }
+
+  const { error } = await supabase.from('shifts').insert(shiftsToInsert)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/schedule')
+  revalidatePath('/admin/schedule')
+  return { success: true }
+}
+

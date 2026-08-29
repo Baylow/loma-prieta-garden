@@ -23,6 +23,17 @@ export default async function ProfilePage() {
     )
   }
 
+  // Fetch upcoming shifts the user is signed up for
+  const { data: signups } = await supabase
+    .from('shift_signups')
+    .select('shift_id, shifts(*)')
+    .eq('user_id', user.id)
+    
+  const upcomingShifts = signups
+    ?.map(s => s.shifts)
+    .filter(shift => new Date(shift.start_time) >= new Date())
+    .sort((a, b) => new Date(a.start_time) - new Date(b.start_time)) || []
+
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
   return (
@@ -95,6 +106,32 @@ export default async function ProfilePage() {
             })}
           </div>
         </div>
+
+        <div className="mt-8">
+          <h3 style={{ color: 'var(--teal)', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', marginBottom: '1rem' }}>My Upcoming Shifts</h3>
+          {upcomingShifts.length === 0 ? (
+            <p className="text-muted">You are not signed up for any upcoming shifts. <Link href="/schedule" style={{ color: 'var(--sapphire-blue)', textDecoration: 'underline' }}>View the schedule to sign up.</Link></p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {upcomingShifts.map(shift => {
+                const startDate = new Date(shift.start_time)
+                const endDate = new Date(shift.end_time)
+                return (
+                  <div key={shift.id} style={{ padding: '1rem', border: '1px solid #eee', borderRadius: '8px', backgroundColor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 'bold', color: 'var(--primary-purple)' }}>{shift.title}</div>
+                      <div style={{ fontSize: '0.875rem' }}>
+                        {startDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })} • {startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} - {endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                      </div>
+                    </div>
+                    <Link href="/schedule" className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>Manage</Link>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   )
