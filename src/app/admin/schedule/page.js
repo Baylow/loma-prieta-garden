@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { createShift, deleteShift } from '../actions'
+import { createShift, deleteShift, bulkCreateShifts } from '../actions'
 import Link from 'next/link'
 
 const STANDARD_BLOCKS = [
@@ -227,6 +227,68 @@ export default async function AdminSchedulePage(props) {
           <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>Create Event</button>
         </form>
       </div>
+      <div style={{ marginTop: '2rem', padding: '1.5rem', backgroundColor: '#f8f6fc', borderRadius: '8px', border: '1px solid rgba(102, 46, 128, 0.1)' }}>
+        <h3 className="mb-4">Bulk Schedule Recurring Classes</h3>
+        <p className="text-muted mb-4" style={{ fontSize: '0.875rem' }}>Use this to automatically populate the schedule for the entire semester (e.g. every Tuesday at 9:15 AM until June 15th).</p>
+        <form action={bulkCreateShifts} className="flex flex-col gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="flex flex-col gap-2">
+              <label style={{ fontWeight: '500', fontSize: '0.875rem' }}>Shift Title</label>
+              <input type="text" name="title" placeholder="e.g. 3rd Grade Garden Class" required style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label style={{ fontWeight: '500', fontSize: '0.875rem' }}>Shift Type</label>
+              <select name="type" required style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: '#fff' }}>
+                <option value="class">Regular Class</option>
+                <option value="event">Special Event</option>
+                <option value="work_day">Work Day</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="flex flex-col gap-2">
+              <label style={{ fontWeight: '500', fontSize: '0.875rem' }}>Start Date</label>
+              <input type="date" name="start_date" required style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label style={{ fontWeight: '500', fontSize: '0.875rem' }}>End Date (Until)</label>
+              <input type="date" name="end_date" required style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            <div className="flex flex-col gap-2">
+              <label style={{ fontWeight: '500', fontSize: '0.875rem' }}>Start Time</label>
+              <input type="time" name="start_time" required style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label style={{ fontWeight: '500', fontSize: '0.875rem' }}>End Time</label>
+              <input type="time" name="end_time" required style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label style={{ fontWeight: '500', fontSize: '0.875rem' }}>Max Volunteers</label>
+              <input type="number" name="max_volunteers" defaultValue="2" required style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label style={{ fontWeight: '500', fontSize: '0.875rem' }}>Days of the Week</label>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <label><input type="checkbox" name="days_of_week" value="1" /> Mon</label>
+              <label><input type="checkbox" name="days_of_week" value="2" /> Tue</label>
+              <label><input type="checkbox" name="days_of_week" value="3" /> Wed</label>
+              <label><input type="checkbox" name="days_of_week" value="4" /> Thu</label>
+              <label><input type="checkbox" name="days_of_week" value="5" /> Fri</label>
+              <label><input type="checkbox" name="days_of_week" value="6" /> Sat</label>
+              <label><input type="checkbox" name="days_of_week" value="0" /> Sun</label>
+            </div>
+          </div>
+
+          <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', marginTop: '1rem' }}>Generate Shifts</button>
+        </form>
+      </div>
+
     </div>
   )
 }

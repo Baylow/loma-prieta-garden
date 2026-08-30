@@ -212,7 +212,11 @@ export async function bulkCreateShifts(formData) {
   while (currentDate <= endDate) {
     const dayOfWeek = currentDate.getDay().toString()
     if (daysOfWeek.includes(dayOfWeek)) {
-      const dateString = currentDate.toISOString().split('T')[0]
+      const year = currentDate.getFullYear()
+      const month = (currentDate.getMonth() + 1).toString().padStart(2, '0')
+      const dayStr = currentDate.getDate().toString().padStart(2, '0')
+      const dateString = `${year}-${month}-${dayStr}`
+      
       const startDateTime = new Date(`${dateString}T${startTimeStr}:00`)
       const endDateTime = new Date(`${dateString}T${endTimeStr}:00`)
       
