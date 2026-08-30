@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { logout } from '@/app/login/actions'
+import { cancelShiftSignup } from '@/app/schedule/actions'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -116,15 +117,42 @@ export default async function ProfilePage() {
               {upcomingShifts.map(shift => {
                 const startDate = new Date(shift.start_time)
                 const endDate = new Date(shift.end_time)
+                const isClass = shift.type === 'class'
+
                 return (
-                  <div key={shift.id} style={{ padding: '1rem', border: '1px solid #eee', borderRadius: '8px', backgroundColor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={shift.id} style={{ padding: '1.25rem', border: '1px solid #eee', borderRadius: '8px', backgroundColor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
-                      <div style={{ fontWeight: 'bold', color: 'var(--primary-purple)' }}>{shift.title}</div>
-                      <div style={{ fontSize: '0.875rem' }}>
+                      <div style={{ fontWeight: 'bold', color: 'var(--primary-purple)', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>{shift.title}</span>
+                        {isClass && (
+                          <span style={{ fontSize: '0.7rem', backgroundColor: 'rgba(59, 181, 181, 0.15)', color: 'var(--teal)', padding: '2px 6px', borderRadius: '10px' }}>
+                            Class
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.875rem', color: '#475569', marginTop: '0.25rem' }}>
                         {startDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })} • {startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} - {endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
                       </div>
                     </div>
-                    <Link href="/schedule" className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>Manage</Link>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <form action={cancelShiftSignup}>
+                        <input type="hidden" name="shift_id" value={shift.id} />
+                        <input type="hidden" name="cancel_recurring" value="false" />
+                        <button className="btn" style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', backgroundColor: '#f1f5f9', color: '#475569' }}>
+                          Cancel this date
+                        </button>
+                      </form>
+                      {isClass && (
+                        <form action={cancelShiftSignup}>
+                          <input type="hidden" name="shift_id" value={shift.id} />
+                          <input type="hidden" name="cancel_recurring" value="true" />
+                          <button className="btn" style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', backgroundColor: '#fee2e2', color: '#b91c1c' }}>
+                            Cancel all upcoming
+                          </button>
+                        </form>
+                      )}
+                    </div>
                   </div>
                 )
               })}

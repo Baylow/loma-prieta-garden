@@ -236,8 +236,95 @@ export async function bulkCreateShifts(formData) {
     return { error: 'No dates matched the selected criteria' }
   }
 
-  const { error } = await supabase.from('shifts').insert(shiftsToInsert)
+  const recurringVolunteerId = formData.get('recurring_volunteer_id')
 
+  const { data: insertedShifts, error } = await supabase.from('shifts').insert(shiftsToInsert).select('id')
+
+  if (error) return { error: error.message }
+
+  // If a recurring volunteer / class lead was selected, automatically sign them up for all shifts in this batch
+  if (recurringVolunteerId && insertedShifts && insertedShifts.length > 0) {
+    const signupsToInsert = insertedShifts.map(s => ({
+      shift_id: s.id,
+      user_id: recurringVolunteerId
+    }))
+    await supabase.from('shift_signups').insert(signupsToInsert)
+  }
+
+  revalidatePath('/schedule')
+  revalidatePath('/admin/schedule')
+  return { success: true }
+}
+
+export async function assignVolunteerToShift(formData) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const shiftId = formData.get('shift_id')
+  const volunteerId = formData.get('volunteer_id')
+  const isRecurring = formData.get('is_recurring') === 'true'
+
+  if (!shiftId || !volunteerId) return { error: 'Missing required fields' }
+
+  const { data: targetShift } = await supabase.from('shifts').select('*').eq('id', shiftId).single()
+  if (!targetShift) return { error: 'Shift not found' }
+
+  if (!isRecurring) {
+    const { error } = await supabase.from('shift_signups').insert([{ shift_id: shiftId, user_id: volunteerId }])
+    if (error && !error.message.includes('duplicate key')) return { error: error.message }
+  } else {
+    const targetDate = new Date(targetShift.start_time)
+    const targetDay = targetDate.getDay()
+    const targetHours = targetDate.getHours()
+    const targetMinutes = targetDate.getMinutes()
+
+    const { data: allUpcoming } = await supabase
+      .from('shifts')
+      .select('*, shift_signups(user_id)')
+      .gte('start_time', targetShift.start_time)
+
+    const matchingShifts = allUpcoming?.filter(s => {
+      if (s.title.trim().toLowerCase() !== targetShift.title.trim().toLowerCase()) return false
+      const sDate = new Date(s.start_time)
+      return sDate.getDay() === targetDay && 
+             sDate.getHours() === targetHours && 
+             sDate.getMinutes() === targetMinutes
+    }) || []
+
+    const signupsToInsert = []
+    for (const s of matchingShifts) {
+      const alreadySignedUp = s.shift_signups.some(signup => signup.user_id === volunteerId)
+      if (!alreadySignedUp && s.shift_signups.length < s.max_volunteers) {
+        signupsToInsert.push({ shift_id: s.id, user_id: volunteerId })
+      }
+    }
+
+    if (signupsToInsert.length > 0) {
+      await supabase.from('shift_signups').insert(signupsToInsert)
+    }
+  }
+
+  revalidatePath('/schedule')
+  revalidatePath('/admin/schedule')
+  return { success: true }
+}
+
+export async function removeVolunteerFromShift(formData) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const shiftId = formData.get('shift_id')
+  const volunteerId = formData.get('volunteer_id')
+
+  const { error } = await supabase.from('shift_signups').delete().match({ shift_id: shiftId, user_id: volunteerId })
   if (error) return { error: error.message }
 
   revalidatePath('/schedule')
