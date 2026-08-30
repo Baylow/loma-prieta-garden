@@ -252,13 +252,17 @@ export async function promoteToAdmin(formData) {
   if (!user) return { error: 'Not authenticated' }
   const { data: profile } = await supabase.from('profiles').select('email').eq('id', user.id).single()
   
-  if (profile?.email !== 'baylow@gmail.com') return { error: 'Not authorized' }
+  const userEmail = (user.email || profile?.email || '').toLowerCase().trim()
+  if (userEmail !== 'baylow@gmail.com') return { error: 'Not authorized' }
 
   const id = formData.get('id')
   
   const { error } = await supabase.from('profiles').update({ role: 'admin' }).eq('id', id)
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.error('Error promoting to admin:', error)
+    return { error: error.message }
+  }
 
   revalidatePath('/admin/volunteers')
   return { success: true }
@@ -271,13 +275,17 @@ export async function revokeAdmin(formData) {
   if (!user) return { error: 'Not authenticated' }
   const { data: profile } = await supabase.from('profiles').select('email').eq('id', user.id).single()
   
-  if (profile?.email !== 'baylow@gmail.com') return { error: 'Not authorized' }
+  const userEmail = (user.email || profile?.email || '').toLowerCase().trim()
+  if (userEmail !== 'baylow@gmail.com') return { error: 'Not authorized' }
 
   const id = formData.get('id')
   
   const { error } = await supabase.from('profiles').update({ role: 'volunteer' }).eq('id', id)
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.error('Error revoking admin:', error)
+    return { error: error.message }
+  }
 
   revalidatePath('/admin/volunteers')
   return { success: true }

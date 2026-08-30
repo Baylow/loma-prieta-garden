@@ -43,6 +43,7 @@ AS $$
 $$;
 
 CREATE POLICY "Admins can view all profiles" ON profiles FOR SELECT USING (is_admin());
+CREATE POLICY "Admins can update all profiles" ON profiles FOR UPDATE USING (is_admin());
 
 
 -- 2. Create the site_content table (for CMS)

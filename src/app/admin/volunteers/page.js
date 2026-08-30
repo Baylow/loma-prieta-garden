@@ -6,7 +6,8 @@ export default async function VolunteersAdminPage() {
   
   const { data: { user } } = await supabase.auth.getUser()
   const { data: currentUserProfile } = await supabase.from('profiles').select('email').eq('id', user?.id).single()
-  const isSuperAdmin = currentUserProfile?.email === 'baylow@gmail.com'
+  const userEmail = (user?.email || currentUserProfile?.email || '').toLowerCase().trim()
+  const isSuperAdmin = userEmail === 'baylow@gmail.com'
 
   // Fetch all profiles
   const { data: volunteers } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
