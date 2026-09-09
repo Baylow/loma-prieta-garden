@@ -39,18 +39,26 @@ export default async function Home() {
         <h2>Recent Highlights</h2>
         <div className={styles.grid}>
           <div className={styles.card}>
-            <img src="/images/spring_harvest.jpg" alt="Spring Harvest Festival" className={styles.cardImage} />
+            <img src="/images/spring_harvest.jpg" alt="Autumn Corn Harvest" className={styles.cardImage} />
             <div className={styles.cardContent}>
-              <h3>Spring Harvest Festival</h3>
-              <p>Join us this weekend as we harvest our first batch of spring vegetables!</p>
+              <h3>Autumn Harvest & Tasting</h3>
+              <p>Students harvesting colorful Indian corn and seasonal vegetables right from our beds!</p>
               <Link href="/updates">Read more &rarr;</Link>
             </div>
           </div>
           <div className={styles.card}>
-            <img src="/images/raised_beds.jpg" alt="New Raised Beds" className={styles.cardImage} />
+            <img src="/images/scarecrow.jpg" alt="Scarecrow Building in the Garden" className={styles.cardImage} />
             <div className={styles.cardContent}>
-              <h3>New Raised Beds</h3>
-              <p>Thanks to our wonderful volunteers, we now have 5 new raised beds for the 3rd graders.</p>
+              <h3>Garden Helpers & Scarecrows</h3>
+              <p>Kindergarten and primary classes getting hands-on with garden care and scarecrow building.</p>
+              <Link href="/updates">Read more &rarr;</Link>
+            </div>
+          </div>
+          <div className={styles.card}>
+            <img src="/images/beekeeper.jpg" alt="Pollinators and Beekeeping" className={styles.cardImage} />
+            <div className={styles.cardContent}>
+              <h3>Ecology & Pollinators</h3>
+              <p>Learning all about our local pollinator friends and hive ecosystems up close.</p>
               <Link href="/updates">Read more &rarr;</Link>
             </div>
           </div>
