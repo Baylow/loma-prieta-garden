@@ -36,18 +36,24 @@ export default async function AdminSchedulePage(props) {
   weekEnd.setHours(23, 59, 59, 999)
 
   // Fetch shifts for the week
-  const { data: shifts } = await supabase
+  const { data: shifts, error: shiftsError } = await supabase
     .from('shifts')
-    .select('*, shift_signups(user_id, profiles(name, email))')
+    .select('*, shift_signups(user_id)')
     .gte('start_time', weekStart.toISOString())
     .lte('start_time', weekEnd.toISOString())
     .order('start_time', { ascending: true })
+
+  if (shiftsError) {
+    console.error('Error fetching admin shifts:', shiftsError)
+  }
 
   // Fetch all registered volunteers for assign dropdowns
   const { data: volunteers } = await supabase
     .from('profiles')
     .select('id, name, email')
     .order('name', { ascending: true })
+
+  const volunteerMap = new Map(volunteers?.map(v => [v.id, v]) || [])
 
   // Build the 5 school days
   const schoolDays = []
@@ -152,16 +158,19 @@ export default async function AdminSchedulePage(props) {
                               <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic' }}>No volunteers signed up yet.</div>
                             ) : (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                {signups.map(s => (
-                                  <div key={s.user_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '0.8rem' }}>
-                                    <span>👤 {s.profiles?.name || s.profiles?.email || 'Volunteer'}</span>
-                                    <form action={removeVolunteerFromShift}>
-                                      <input type="hidden" name="shift_id" value={claimedShift.id} />
-                                      <input type="hidden" name="volunteer_id" value={s.user_id} />
-                                      <button type="submit" title="Remove" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', padding: '0 4px' }}>×</button>
-                                    </form>
-                                  </div>
-                                ))}
+                                {signups.map(s => {
+                                  const vol = volunteerMap.get(s.user_id)
+                                  return (
+                                    <div key={s.user_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '0.8rem' }}>
+                                      <span>👤 {vol?.name || vol?.email || 'Volunteer'}</span>
+                                      <form action={removeVolunteerFromShift}>
+                                        <input type="hidden" name="shift_id" value={claimedShift.id} />
+                                        <input type="hidden" name="volunteer_id" value={s.user_id} />
+                                        <button type="submit" title="Remove" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', padding: '0 4px' }}>×</button>
+                                      </form>
+                                    </div>
+                                  )
+                                })}
                               </div>
                             )}
                           </div>

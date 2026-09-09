@@ -6,12 +6,20 @@ export default async function SchedulePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
-  // Fetch upcoming shifts with profile info of signed up volunteers
-  const { data: shifts } = await supabase
+  // Fetch upcoming shifts
+  const { data: shifts, error: shiftsError } = await supabase
     .from('shifts')
-    .select('*, shift_signups(user_id, profiles(name, photo_url))')
+    .select('*, shift_signups(user_id)')
     .order('start_time', { ascending: true })
     .gte('start_time', new Date().toISOString())
+
+  if (shiftsError) {
+    console.error('Error fetching shifts:', shiftsError)
+  }
+
+  // Fetch profiles for mapping volunteer names
+  const { data: profiles } = await supabase.from('profiles').select('id, name, photo_url')
+  const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
 
   return (
     <div className="container mt-8 animate-fade-in-down mb-12">
@@ -65,11 +73,14 @@ export default async function SchedulePage() {
                   {signups.length > 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '0.75rem', color: '#718096', fontWeight: '500' }}>Signed up:</span>
-                      {signups.map((s, idx) => (
-                        <span key={idx} style={{ fontSize: '0.8rem', backgroundColor: '#f1f5f9', padding: '2px 8px', borderRadius: '12px', color: '#334155' }}>
-                          {s.profiles?.name || 'Volunteer'}
-                        </span>
-                      ))}
+                      {signups.map((s, idx) => {
+                        const prof = profileMap.get(s.user_id)
+                        return (
+                          <span key={idx} style={{ fontSize: '0.8rem', backgroundColor: '#f1f5f9', padding: '2px 8px', borderRadius: '12px', color: '#334155' }}>
+                            {prof?.name || 'Volunteer'}
+                          </span>
+                        )
+                      })}
                     </div>
                   )}
                 </div>
