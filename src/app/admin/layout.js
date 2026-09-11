@@ -59,6 +59,11 @@ export default async function AdminLayout({ children }) {
                 Manage Schedule
               </Link>
             </li>
+            <li>
+              <Link href="/schedule/monthly" target="_blank" style={{ display: 'block', padding: '0.75rem', borderRadius: '4px', fontWeight: '500', color: 'var(--teal)' }}>
+                📅 Monthly Calendar / Print ↗
+              </Link>
+            </li>
           </ul>
         </div>
         
