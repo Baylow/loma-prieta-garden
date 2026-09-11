@@ -73,17 +73,26 @@ export default async function AdminSchedulePage(props) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <h2 style={{ marginBottom: '0.5rem', color: 'var(--sapphire-blue)' }}>Weekly Schedule</h2>
+          <h2 style={{ marginBottom: '0.25rem', color: 'var(--sapphire-blue)' }}>Weekly Schedule</h2>
           <p className="text-muted">Claim daily 45-min blocks and manage volunteer assignments.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <Link href={`?week=${weekOffset - 1}`} className="btn btn-secondary">&larr; Prev Week</Link>
-          <span style={{ fontWeight: 'bold' }}>
-            {weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(weekStart.getTime() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-          </span>
-          <Link href={`?week=${weekOffset + 1}`} className="btn btn-secondary">Next Week &rarr;</Link>
+
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link href="/schedule/monthly" className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+            📅 Monthly Calendar / Print
+          </Link>
+          <a href="/api/calendar/export" className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+            📥 Export .ics
+          </a>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: '0.5rem' }}>
+            <Link href={`?week=${weekOffset - 1}`} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}>&larr; Prev Week</Link>
+            <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>
+              {weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(weekStart.getTime() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+            </span>
+            <Link href={`?week=${weekOffset + 1}`} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}>Next Week &rarr;</Link>
+          </div>
         </div>
       </div>
 

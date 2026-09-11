@@ -23,8 +23,29 @@ export default async function SchedulePage() {
 
   return (
     <div className="container mt-8 animate-fade-in-down mb-12">
-      <h1 className="text-center mb-4">Volunteer Schedule</h1>
-      <p className="text-center mb-8 text-muted">Sign up to help with classes, special events, or weekend garden work.</p>
+      <h1 className="text-center mb-2">Volunteer Schedule</h1>
+      <p className="text-center mb-6 text-muted">Sign up to help with classes, special events, or weekend garden work.</p>
+      
+      {/* View Switcher & Export Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem', backgroundColor: '#f8fafc', padding: '0.75rem 1.25rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--primary-purple)', backgroundColor: 'rgba(102, 46, 128, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>
+            📋 List View
+          </span>
+          <Link href="/schedule/monthly" className="btn btn-secondary" style={{ padding: '0.35rem 0.85rem', fontSize: '0.85rem' }}>
+            📅 Monthly Calendar View
+          </Link>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link href="/schedule/monthly" className="btn btn-secondary" style={{ padding: '0.35rem 0.85rem', fontSize: '0.85rem' }}>
+            🖨️ Printable Calendar
+          </Link>
+          <a href="/api/calendar/export" className="btn btn-primary" style={{ padding: '0.35rem 0.85rem', fontSize: '0.85rem' }} title="Download iCal file to sync with Google Calendar or Apple Calendar">
+            📥 Export to Calendar (.ics)
+          </a>
+        </div>
+      </div>
       
       {(!shifts || shifts.length === 0) ? (
         <div className="text-center text-muted glass-panel p-8">
