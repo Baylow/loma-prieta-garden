@@ -450,7 +450,7 @@ export default async function AdminSchedulePage(props) {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
             <div className="flex flex-col gap-2">
               <label style={{ fontWeight: '500', fontSize: '0.875rem' }}>Start Date</label>
               <input type="date" name="start_date" required style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
@@ -458,6 +458,17 @@ export default async function AdminSchedulePage(props) {
             <div className="flex flex-col gap-2">
               <label style={{ fontWeight: '500', fontSize: '0.875rem' }}>End Date (Until)</label>
               <input type="date" name="end_date" required style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label style={{ fontWeight: '500', fontSize: '0.875rem' }}>Repeat Frequency</label>
+              <select name="interval_weeks" defaultValue="1" style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: '#fff' }}>
+                <option value="1">Every 1 week (Weekly)</option>
+                <option value="2">Every 2 weeks (Bi-weekly / Alternating)</option>
+                <option value="3">Every 3 weeks</option>
+                <option value="4">Every 4 weeks</option>
+                <option value="5">Every 5 weeks</option>
+                <option value="6">Every 6 weeks</option>
+              </select>
             </div>
           </div>
 

@@ -122,6 +122,31 @@ export async function updateBedGrid(id, gridData) {
   return { success: true }
 }
 
+function getPacificUTCISOString(dateStr, timeStr) {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const [hour, min] = timeStr.split(':').map(Number)
+  const testUtc = new Date(Date.UTC(year, month - 1, day, hour, min))
+  
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false
+  })
+  
+  const parts = formatter.formatToParts(testUtc)
+  const laHour = parseInt(parts.find(p => p.type === 'hour').value, 10) % 24
+  const laDay = parseInt(parts.find(p => p.type === 'day').value, 10)
+  
+  let hourDiff = hour - laHour
+  if (day !== laDay) {
+    if (day > laDay) hourDiff += 24
+    else hourDiff -= 24
+  }
+  
+  return new Date(testUtc.getTime() + hourDiff * 3600000).toISOString()
+}
+
 export async function createShift(formData) {
   const supabase = await createClient()
 
@@ -133,13 +158,14 @@ export async function createShift(formData) {
   let startTime = formData.get('start_time')
   let endTime = formData.get('end_time')
   
-  // If it comes from datetime-local input, it won't have a timezone (length 16 like YYYY-MM-DDTHH:MM)
-  // We parse it into a local Date object, then get the UTC ISO string to save to the DB
+  // If it comes from datetime-local input (length 16 like YYYY-MM-DDTHH:MM), convert Pacific to UTC
   if (startTime && startTime.length <= 16) {
-    startTime = new Date(startTime).toISOString()
+    const [dPart, tPart] = startTime.split('T')
+    startTime = getPacificUTCISOString(dPart, tPart)
   }
   if (endTime && endTime.length <= 16) {
-    endTime = new Date(endTime).toISOString()
+    const [dPart, tPart] = endTime.split('T')
+    endTime = getPacificUTCISOString(dPart, tPart)
   }
 
   const shiftData = {
@@ -196,6 +222,7 @@ export async function bulkCreateShifts(formData) {
   const endDateStr = formData.get('end_date') // YYYY-MM-DD
   const startTimeStr = formData.get('start_time') // HH:MM
   const endTimeStr = formData.get('end_time') // HH:MM
+  const intervalWeeks = Math.max(1, parseInt(formData.get('interval_weeks') || '1', 10))
   
   const daysOfWeek = formData.getAll('days_of_week') // Array of '0' (Sun) to '6' (Sat)
 
@@ -203,8 +230,22 @@ export async function bulkCreateShifts(formData) {
     return { error: 'Missing required fields' }
   }
 
-  const startDate = new Date(startDateStr + 'T00:00:00')
-  const endDate = new Date(endDateStr + 'T23:59:59')
+  const [sYear, sMonth, sDay] = startDateStr.split('-').map(Number)
+  const [eYear, eMonth, eDay] = endDateStr.split('-').map(Number)
+  const startDate = new Date(sYear, sMonth - 1, sDay)
+  const endDate = new Date(eYear, eMonth - 1, eDay)
+
+  // Helper to get Monday of a date for week counting
+  const getMondayOfDate = (d) => {
+    const temp = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+    const day = temp.getDay()
+    const diff = temp.getDate() - day + (day === 0 ? -6 : 1)
+    temp.setDate(diff)
+    temp.setHours(0, 0, 0, 0)
+    return temp
+  }
+
+  const startMonday = getMondayOfDate(startDate)
   
   const shiftsToInsert = []
   
@@ -212,22 +253,24 @@ export async function bulkCreateShifts(formData) {
   while (currentDate <= endDate) {
     const dayOfWeek = currentDate.getDay().toString()
     if (daysOfWeek.includes(dayOfWeek)) {
-      const year = currentDate.getFullYear()
-      const month = (currentDate.getMonth() + 1).toString().padStart(2, '0')
-      const dayStr = currentDate.getDate().toString().padStart(2, '0')
-      const dateString = `${year}-${month}-${dayStr}`
-      
-      const startDateTime = new Date(`${dateString}T${startTimeStr}:00`)
-      const endDateTime = new Date(`${dateString}T${endTimeStr}:00`)
-      
-      shiftsToInsert.push({
-        title,
-        description,
-        start_time: startDateTime.toISOString(),
-        end_time: endDateTime.toISOString(),
-        type,
-        max_volunteers
-      })
+      const currentMonday = getMondayOfDate(currentDate)
+      const weekDiff = Math.round((currentMonday.getTime() - startMonday.getTime()) / (7 * 24 * 60 * 60 * 1000))
+
+      if (weekDiff % intervalWeeks === 0) {
+        const year = currentDate.getFullYear()
+        const month = (currentDate.getMonth() + 1).toString().padStart(2, '0')
+        const dayStr = currentDate.getDate().toString().padStart(2, '0')
+        const dateString = `${year}-${month}-${dayStr}`
+        
+        shiftsToInsert.push({
+          title,
+          description,
+          start_time: getPacificUTCISOString(dateString, startTimeStr),
+          end_time: getPacificUTCISOString(dateString, endTimeStr),
+          type,
+          max_volunteers
+        })
+      }
     }
     currentDate.setDate(currentDate.getDate() + 1)
   }
@@ -252,6 +295,7 @@ export async function bulkCreateShifts(formData) {
   }
 
   revalidatePath('/schedule')
+  revalidatePath('/schedule/monthly')
   revalidatePath('/admin/schedule')
   return { success: true }
 }
