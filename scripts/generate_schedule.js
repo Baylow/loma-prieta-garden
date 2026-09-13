@@ -1,21 +1,45 @@
 const fs = require('fs');
 const path = require('path');
 
-const startDate = new Date(2026, 8, 1); // Sept 1, 2026
-const endDate = new Date(2027, 5, 15);  // June 15, 2027
-
-const shifts = [];
+// Helper to convert Pacific Date & Time string to exact UTC ISO String
+function pacificToUTC(dateStr, timeStr) {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hour, min] = timeStr.split(':').map(Number);
+  const testUtc = new Date(Date.UTC(year, month - 1, day, hour, min));
+  
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(testUtc);
+  const laHour = parseInt(parts.find(p => p.type === 'hour').value, 10) % 24;
+  const laDay = parseInt(parts.find(p => p.type === 'day').value, 10);
+  
+  let hourDiff = hour - laHour;
+  if (day !== laDay) {
+    if (day > laDay) hourDiff += 24;
+    else hourDiff -= 24;
+  }
+  
+  return new Date(testUtc.getTime() + hourDiff * 3600000).toISOString();
+}
 
 function pad(n) { return n < 10 ? '0' + n : n; }
 
-// Check which Nth occurrence of a weekday in that month (1st Tuesday, 3rd Friday, etc.)
+// Nth occurrence of a weekday in that month (1st Tuesday, 3rd Friday, etc.)
 function getNthWeekdayOfMonth(date) {
   const day = date.getDate();
   return Math.floor((day - 1) / 7) + 1;
 }
 
+const startDate = new Date(2026, 8, 1); // Sept 1, 2026
+const endDate = new Date(2027, 5, 15);  // June 15, 2027
+
+const shifts = [];
 let cur = new Date(startDate);
-let zookToggle = true;
 
 while (cur <= endDate) {
   const year = cur.getFullYear();
@@ -25,136 +49,132 @@ while (cur <= endDate) {
   const nthWeekday = getNthWeekdayOfMonth(cur);
   const dateStr = `${year}-${pad(month + 1)}-${pad(dayOfMonth)}`;
 
-  // 1. MONDAY
-  if (dayOfWeek === 1) {
-    // Ignoffo: 1st and 3rd Monday, 2:15 - 2:45 PM (14:15 - 14:45)
-    if (nthWeekday === 1 || nthWeekday === 3) {
-      shifts.push({
-        title: 'Ignoffo Class Garden',
-        description: 'Bi-weekly class garden block. Class Lead: Rebecca Witmer',
-        type: 'class',
-        start_time_expr: `'${dateStr} 14:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        end_time_expr: `'${dateStr} 14:45:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        max_volunteers: 2
-      });
-    }
-  }
+  // Skip school holidays / breaks:
+  // Thanksgiving week: Nov 23 - Nov 27, 2026
+  const isThanksgivingBreak = (month === 10 && dayOfMonth >= 23 && dayOfMonth <= 27);
+  // Winter break: Dec 21, 2026 - Jan 1, 2027
+  const isWinterBreak = (month === 11 && dayOfMonth >= 21) || (month === 0 && dayOfMonth === 1);
+  // Spring break: April 12 - April 16, 2027
+  const isSpringBreak = (month === 3 && dayOfMonth >= 12 && dayOfMonth <= 16);
 
-  // 2. TUESDAY
-  if (dayOfWeek === 2) {
-    // Richter: 1st Tuesday of the month, 12:15 - 1:15 PM (12:15 - 13:15)
-    if (nthWeekday === 1) {
-      shifts.push({
-        title: 'Richter Class Garden',
-        description: 'Monthly garden class (1st Tuesday). Class Lead: Stephanie Rovegno',
-        type: 'class',
-        start_time_expr: `'${dateStr} 12:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        end_time_expr: `'${dateStr} 13:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        max_volunteers: 2
-      });
-    }
-  }
+  if (!isThanksgivingBreak && !isWinterBreak && !isSpringBreak) {
 
-  // 3. THURSDAY
-  if (dayOfWeek === 4) {
-    // Hoefer: 1st & 3rd Thursday, 8:50 - 9:20 AM (08:50 - 09:20)
-    if (nthWeekday === 1 || nthWeekday === 3) {
-      shifts.push({
-        title: 'Hoefer Class Garden',
-        description: 'Bi-weekly garden class. Class Leads: Amy Wakim and Karly Fogg',
-        type: 'class',
-        start_time_expr: `'${dateStr} 08:50:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        end_time_expr: `'${dateStr} 09:20:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        max_volunteers: 2
-      });
+    // 1. MONDAY
+    if (dayOfWeek === 1) {
+      // Ignoffo: 1st and 3rd Monday, 2:00 - 2:45 PM (14:00 - 14:45)
+      if (nthWeekday === 1 || nthWeekday === 3) {
+        shifts.push({
+          title: 'Ignoffo Class Garden',
+          description: 'Bi-weekly class garden block. Class Lead: Rebecca Whitmer',
+          type: 'class',
+          start_time: pacificToUTC(dateStr, '14:00'),
+          end_time: pacificToUTC(dateStr, '14:45'),
+          max_volunteers: 2
+        });
+      }
     }
 
-    // Ray / Perry: Weekly Thursday, 12:15 - 12:45 PM
-    shifts.push({
-      title: 'Ray/Perry Class Garden',
-      description: 'Weekly garden class. Class Lead: Adelia',
-      type: 'class',
-      start_time_expr: `'${dateStr} 12:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-      end_time_expr: `'${dateStr} 12:45:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-      max_volunteers: 2
-    });
-
-    // Templeton / Cole: 2nd & 4th Thursday, 12:15 - 1:15 PM (12:15 - 13:15)
-    if (nthWeekday === 2 || nthWeekday === 4) {
-      shifts.push({
-        title: 'Templeton/Cole Class Garden',
-        description: 'Bi-weekly garden class (2x/month). Class Lead: Joanna Rauh',
-        type: 'class',
-        start_time_expr: `'${dateStr} 12:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        end_time_expr: `'${dateStr} 13:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        max_volunteers: 2
-      });
+    // 2. TUESDAY
+    if (dayOfWeek === 2) {
+      // Richter: 1st Tuesday of the month, 12:15 - 1:15 PM (12:15 - 13:15) [TENTATIVE]
+      if (nthWeekday === 1) {
+        shifts.push({
+          title: 'Richter Class Garden (Tentative)',
+          description: 'Monthly garden class (1st Tuesday) - Tentative. Class Lead: Stephanie Rovegno',
+          type: 'class',
+          start_time: pacificToUTC(dateStr, '12:15'),
+          end_time: pacificToUTC(dateStr, '13:15'),
+          max_volunteers: 2
+        });
+      }
     }
-  }
 
-  // 4. FRIDAY
-  if (dayOfWeek === 5) {
-    // Zook: EOW (Every other week) Friday 9:00 - 10:00 AM
-    if (zookToggle) {
-      shifts.push({
-        title: 'Zook Class Garden',
-        description: 'Every other week garden class. Volunteers welcome!',
-        type: 'class',
-        start_time_expr: `'${dateStr} 09:00:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        end_time_expr: `'${dateStr} 10:00:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        max_volunteers: 2
-      });
-    }
-    zookToggle = !zookToggle;
+    // 3. THURSDAY
+    if (dayOfWeek === 4) {
+      // Hoefer: 1st & 3rd Thursday, 8:50 - 9:20 AM (08:50 - 09:20)
+      if (nthWeekday === 1 || nthWeekday === 3) {
+        shifts.push({
+          title: 'Hoefer Class Garden',
+          description: 'Bi-weekly garden class (1st & 3rd Thursday). Class Leads: Amy Wakim, Karly Fogg, Erin Matteucci, Stephen Garaffo, Irene Whitney',
+          type: 'class',
+          start_time: pacificToUTC(dateStr, '08:50'),
+          end_time: pacificToUTC(dateStr, '09:20'),
+          max_volunteers: 2
+        });
+      }
 
-    // DePiazza: Every 3rd Friday of the month, 10:30 - 11:30 AM
-    if (nthWeekday === 3) {
+      // Perry / Ray: Weekly Thursday, 12:00 - 12:45 PM
       shifts.push({
-        title: 'DePiazza Class Garden',
-        description: 'Monthly garden class (3rd Friday). Open for volunteer leads!',
+        title: 'Perry/Ray Class Garden',
+        description: 'Weekly garden class. Class Lead: Adelia Rowland',
         type: 'class',
-        start_time_expr: `'${dateStr} 10:30:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        end_time_expr: `'${dateStr} 11:30:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
+        start_time: pacificToUTC(dateStr, '12:00'),
+        end_time: pacificToUTC(dateStr, '12:45'),
         max_volunteers: 2
       });
     }
 
-    // Zanotto (both 5th grade classes):
-    // Weekly in Fall (Sept - Dec), 1st Friday of the month in Winter/Spring (Jan - June)
-    const isFall = (month >= 8 && month <= 11);
-    if (isFall || nthWeekday === 1) {
-      shifts.push({
-        title: 'Zanotto 5th Grade Classes',
-        description: '5th grade garden session (both classes). Open for volunteer leads!',
-        type: 'class',
-        start_time_expr: `'${dateStr} 12:00:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        end_time_expr: `'${dateStr} 13:50:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        max_volunteers: 3
-      });
-    }
+    // 4. FRIDAY
+    if (dayOfWeek === 5) {
+      // Zook: 1st & 3rd Friday (Every other Friday), 9:00 - 9:40 AM
+      if (nthWeekday === 1 || nthWeekday === 3) {
+        shifts.push({
+          title: 'Zook Class Garden',
+          description: 'Bi-weekly garden class (1st & 3rd Friday). Class Leads: Pam Hagedorn & Stephen Garaffo',
+          type: 'class',
+          start_time: pacificToUTC(dateStr, '09:00'),
+          end_time: pacificToUTC(dateStr, '09:40'),
+          max_volunteers: 2
+        });
+      }
 
-    // Ponkey: 1st & 3rd Friday, 2:00 - 2:45 PM (14:00 - 14:45)
-    if (nthWeekday === 1 || nthWeekday === 3) {
-      shifts.push({
-        title: 'Ponkey Class Garden',
-        description: 'Bi-weekly garden class (1st & 3rd Friday). Class Lead: Rebecca Witmer',
-        type: 'class',
-        start_time_expr: `'${dateStr} 14:00:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        end_time_expr: `'${dateStr} 14:45:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        max_volunteers: 2
-      });
-    }
+      // DePiazza: 3rd Friday of the month, 10:30 - 11:30 AM [TENTATIVE]
+      if (nthWeekday === 3) {
+        shifts.push({
+          title: 'DePiazza Class Garden (Tentative)',
+          description: 'Monthly garden class (3rd Friday) - Tentative. Open for volunteer leads!',
+          type: 'class',
+          start_time: pacificToUTC(dateStr, '10:30'),
+          end_time: pacificToUTC(dateStr, '11:30'),
+          max_volunteers: 2
+        });
+      }
 
-    // LaMacchia: 2nd & 4th Friday, 2:00 - 2:40 PM (14:00 - 14:40)
-    if (nthWeekday === 2 || nthWeekday === 4) {
-      shifts.push({
-        title: 'LaMacchia Class Garden',
-        description: 'Bi-weekly garden class (2nd & 4th Friday). Helper: Grandma volunteer (need class lead)',
-        type: 'class',
-        start_time_expr: `'${dateStr} 14:00:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        end_time_expr: `'${dateStr} 14:40:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
-        max_volunteers: 2
-      });
+      // Templeton / Cole: 1st & 3rd Friday (Every other Friday), 1:00 - 1:40 PM (13:00 - 13:40)
+      if (nthWeekday === 1 || nthWeekday === 3) {
+        shifts.push({
+          title: 'Templeton/Cole Class Garden',
+          description: 'Bi-weekly garden class (1st & 3rd Friday). Class Leads: Joanna Rauh & Lauren Miller',
+          type: 'class',
+          start_time: pacificToUTC(dateStr, '13:00'),
+          end_time: pacificToUTC(dateStr, '13:40'),
+          max_volunteers: 2
+        });
+      }
+
+      // Ponkey: 1st & 3rd Friday, 2:00 - 2:45 PM (14:00 - 14:45) [TENTATIVE]
+      if (nthWeekday === 1 || nthWeekday === 3) {
+        shifts.push({
+          title: 'Ponkey Class Garden (Tentative)',
+          description: 'Bi-weekly garden class (1st & 3rd Friday) - Tentative. Class Lead: Rebecca Whitmer',
+          type: 'class',
+          start_time: pacificToUTC(dateStr, '14:00'),
+          end_time: pacificToUTC(dateStr, '14:45'),
+          max_volunteers: 2
+        });
+      }
+
+      // LaMacchia: 2nd & 4th Friday, 2:00 - 2:45 PM (14:00 - 14:45)
+      if (nthWeekday === 2 || nthWeekday === 4) {
+        shifts.push({
+          title: 'LaMacchia Class Garden',
+          description: 'Bi-weekly garden class (2nd & 4th Friday). Class Leads: Pam Hagedorn & Kathy Adams',
+          type: 'class',
+          start_time: pacificToUTC(dateStr, '14:00'),
+          end_time: pacificToUTC(dateStr, '14:45'),
+          max_volunteers: 2
+        });
+      }
     }
   }
 
@@ -163,18 +183,18 @@ while (cur <= endDate) {
 }
 
 // Generate SQL
-let sql = `-- Full School Year Schedule (Sept 2026 - June 2027) generated from Google Sheet\n`;
-sql += `-- Clear previous class shifts to ensure exact California local times:\n`;
+let sql = `-- Full School Year Schedule (Sept 2026 - June 2027) with Tentative flags and Exact California Timezones\n`;
+sql += `-- Scraps all recurring weekday classes (type = 'class') while preserving work days & special events:\n`;
 sql += `DELETE FROM shifts WHERE type = 'class';\n\n`;
 sql += `INSERT INTO shifts (title, description, type, start_time, end_time, max_volunteers)\nVALUES\n`;
 
 const values = shifts.map(s => {
   const title = s.title.replace(/'/g, "''");
   const desc = s.description.replace(/'/g, "''");
-  return `  ('${title}', '${desc}', '${s.type}', ${s.start_time_expr}, ${s.end_time_expr}, ${s.max_volunteers})`;
+  return `  ('${title}', '${desc}', '${s.type}', '${s.start_time}'::timestamptz, '${s.end_time}'::timestamptz, ${s.max_volunteers})`;
 }).join(',\n');
 
 sql += values + ';\n';
 
 fs.writeFileSync(path.join(__dirname, '..', 'seed_school_year_schedule.sql'), sql);
-console.log(`Generated ${shifts.length} shift entries in seed_school_year_schedule.sql with California timezone conversions.`);
+console.log(`Generated ${shifts.length} shift entries in seed_school_year_schedule.sql.`);

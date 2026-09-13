@@ -56,9 +56,25 @@ export default function MonthlyCalendar({ initialShifts }) {
     }, 150);
   };
 
+  const getPacificParts = (isoString) => {
+    const d = new Date(isoString);
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    });
+    const parts = formatter.formatToParts(d);
+    return {
+      year: parseInt(parts.find(p => p.type === 'year').value, 10),
+      month: parseInt(parts.find(p => p.type === 'month').value, 10) - 1,
+      day: parseInt(parts.find(p => p.type === 'day').value, 10)
+    };
+  };
+
   const formatTime = (isoString) => {
     const d = new Date(isoString);
-    return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return d.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
   };
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -71,19 +87,18 @@ export default function MonthlyCalendar({ initialShifts }) {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const prevMonthDays = new Date(year, month, 0).getDate();
 
-    // Filter shifts for this month
+    // Filter shifts for this month in California timezone
     const mShifts = (initialShifts || []).filter(shift => {
-      const d = new Date(shift.start_time);
-      return d.getFullYear() === year && d.getMonth() === month;
+      const p = getPacificParts(shift.start_time);
+      return p.year === year && p.month === month;
     });
 
-    // Group shifts by day
+    // Group shifts by California day
     const shiftsByDay = {};
     mShifts.forEach(shift => {
-      const d = new Date(shift.start_time);
-      const day = d.getDate();
-      if (!shiftsByDay[day]) shiftsByDay[day] = [];
-      shiftsByDay[day].push(shift);
+      const p = getPacificParts(shift.start_time);
+      if (!shiftsByDay[p.day]) shiftsByDay[p.day] = [];
+      shiftsByDay[p.day].push(shift);
     });
 
     Object.keys(shiftsByDay).forEach(day => {
@@ -487,7 +502,7 @@ export default function MonthlyCalendar({ initialShifts }) {
 
             <div style={{ fontSize: '0.9rem', marginBottom: '1.25rem', color: '#334155' }}>
               <div style={{ marginBottom: '0.3rem' }}>
-                <strong>Date:</strong> {new Date(selectedShift.start_time).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                <strong>Date:</strong> {new Date(selectedShift.start_time).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </div>
               <div style={{ marginBottom: '0.3rem' }}>
                 <strong>Time:</strong> {formatTime(selectedShift.start_time)} - {formatTime(selectedShift.end_time)}

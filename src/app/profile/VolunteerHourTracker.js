@@ -283,7 +283,7 @@ export default function VolunteerHourTracker({ allShifts, profile }) {
                 processedShifts.map(s => (
                   <tr key={s.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '0.6rem 0.5rem', fontWeight: '500' }}>
-                      {s.startDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {s.startDate.toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td style={{ padding: '0.6rem 0.5rem', fontWeight: 'bold', color: 'var(--primary-purple)' }}>
                       {s.title}
@@ -292,7 +292,7 @@ export default function VolunteerHourTracker({ allShifts, profile }) {
                       {s.type.replace('_', ' ')}
                     </td>
                     <td style={{ padding: '0.6rem 0.5rem', color: '#64748b' }}>
-                      {s.startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} - {s.endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                      {s.startDate.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' })} - {s.endDate.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' })}
                     </td>
                     <td style={{ padding: '0.6rem 0.5rem', fontWeight: 'bold', color: s.isCompleted ? '#166534' : '#64748b' }}>
                       {s.durationHours.toFixed(2)} hrs

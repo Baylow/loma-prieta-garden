@@ -95,7 +95,7 @@ export default async function SchedulePage() {
                   </div>
 
                   <div style={{ fontSize: '0.95rem', marginBottom: '0.5rem', color: '#2d3748' }}>
-                    <strong>{startDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</strong> • {startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} - {endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                    <strong>{startDate.toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'long', day: 'numeric' })}</strong> • {startDate.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' })} - {endDate.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' })}
                   </div>
 
                   {shift.description && (

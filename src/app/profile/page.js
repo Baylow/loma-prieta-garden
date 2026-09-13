@@ -147,7 +147,7 @@ export default async function ProfilePage() {
                         )}
                       </div>
                       <div style={{ fontSize: '0.875rem', color: '#475569', marginTop: '0.25rem' }}>
-                        {startDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })} • {startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} - {endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                        {startDate.toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'short', day: 'numeric' })} • {startDate.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' })} - {endDate.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' })}
                       </div>
                     </div>
 
