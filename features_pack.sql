@@ -73,14 +73,3 @@ CREATE POLICY "Admins can view and manage schedule requests" ON schedule_request
 INSERT INTO site_content (id, content) VALUES
 ('weather_notice', '{"status":"normal","custom_message":"","last_updated":"2026-09-13T09:00:00Z"}')
 ON CONFLICT (id) DO NOTHING;
-
-
--- 4. Insert Default Wishlist Items for Loma Prieta Garden
-INSERT INTO wishlist_items (title, description, category, quantity_needed, urgency) VALUES
-('Organic Potting Soil & Compost (2 cu ft bags)', 'OMRI organic certified mix for classroom seedling starts and bed revitalization.', 'Soil & Compost', 6, 'urgent'),
-('Kid-Sized Garden Gloves (Small / Medium)', 'Washable nitrile-coated gardening gloves for K-5 hands.', 'Tools & Gear', 15, 'needed_soon'),
-('Heirloom Winter Squash & Fall Seed Packets', 'Seeds for October planting units and cold-season cover crops.', 'Seeds & Starts', 4, 'normal'),
-('Long-Stem Compost Dial Thermometer', 'Compost thermometer for students to measure heat in our 3-bin redwood composting system.', 'Tools & Gear', 2, 'needed_soon'),
-('Cedar Bed Placard Stakes & Weatherproof Markers', 'Durable stakes and markers for Bed 1-12 identification.', 'Building Materials', 12, 'normal'),
-('Child Watering Cans (1-Gallon with Rose Spout)', 'Gentle-flow watering cans for student watering rotations.', 'Tools & Gear', 5, 'needed_soon')
-ON CONFLICT DO NOTHING;
