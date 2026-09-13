@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { signUpForShift, cancelShiftSignup } from './actions'
 import Link from 'next/link'
+import WeatherWidget from '@/components/WeatherWidget'
 
 export default async function SchedulePage() {
   const supabase = await createClient()
@@ -17,6 +18,13 @@ export default async function SchedulePage() {
     console.error('Error fetching shifts:', shiftsError)
   }
 
+  // Fetch weather notice from site_content
+  const { data: weatherNotice } = await supabase
+    .from('site_content')
+    .select('content')
+    .eq('id', 'weather_notice')
+    .single()
+
   // Fetch profiles for mapping volunteer names
   const { data: profiles } = await supabase.from('profiles').select('id, name, photo_url')
   const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
@@ -26,14 +34,20 @@ export default async function SchedulePage() {
       <h1 className="text-center mb-2">Volunteer Schedule</h1>
       <p className="text-center mb-6 text-muted">Sign up to help with classes, special events, or weekend garden work.</p>
       
-      {/* View Switcher & Export Bar */}
+      {/* Live Mountain Weather Forecast & Rain Plan Notice */}
+      <WeatherWidget weatherNotice={weatherNotice?.content} />
+
+      {/* View Switcher, Teacher Request, & Export Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem', backgroundColor: '#f8fafc', padding: '0.75rem 1.25rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--primary-purple)', backgroundColor: 'rgba(102, 46, 128, 0.1)', padding: '4px 10px', borderRadius: '6px' }}>
             📋 List View
           </span>
           <Link href="/schedule/monthly" className="btn btn-secondary" style={{ padding: '0.35rem 0.85rem', fontSize: '0.85rem' }}>
             📅 Monthly Calendar View
+          </Link>
+          <Link href="/schedule/request" className="btn btn-secondary" style={{ padding: '0.35rem 0.85rem', fontSize: '0.85rem', color: 'var(--primary-purple)', borderColor: 'rgba(102, 46, 128, 0.3)' }}>
+            🧑‍🏫 Teacher Booking Form
           </Link>
         </div>
 

@@ -18,8 +18,60 @@ export default async function Home() {
           <h1>{homepageHero}</h1>
           <p>{homepageMission}</p>
           <div className={styles.ctaGroup}>
-            <Link href="/register" className="btn btn-primary">Get Involved</Link>
+            <Link href="/schedule" className="btn btn-primary">Volunteer Schedule & Weather</Link>
+            <Link href="/register" className="btn btn-secondary">Register as Volunteer</Link>
           </div>
+        </div>
+      </section>
+
+      {/* Quick Action Feature Grid */}
+      <section className="container mt-6 mb-6">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
+          
+          <Link href="/schedule" className="glass-panel p-5" style={{ textDecoration: 'none', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📅</div>
+              <h3 style={{ fontSize: '1.1rem', color: 'var(--primary-purple)', marginBottom: '0.25rem' }}>Schedule & Weather</h3>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+                Live mountain weather forecast, 45-min class blocks, and parent volunteer sign-ups.
+              </p>
+            </div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--teal)', fontWeight: 'bold', marginTop: '1rem' }}>View Schedule &rarr;</span>
+          </Link>
+
+          <Link href="/growing" className="glass-panel p-5" style={{ textDecoration: 'none', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌿</div>
+              <h3 style={{ fontSize: '1.1rem', color: 'var(--primary-purple)', marginBottom: '0.25rem' }}>What's Growing</h3>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+                Interactive 10×3 square-foot bed maps and printable QR signs for Beds 1–12.
+              </p>
+            </div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--teal)', fontWeight: 'bold', marginTop: '1rem' }}>Explore Beds &rarr;</span>
+          </Link>
+
+          <Link href="/wishlist" className="glass-panel p-5" style={{ textDecoration: 'none', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎁</div>
+              <h3 style={{ fontSize: '1.1rem', color: 'var(--primary-purple)', marginBottom: '0.25rem' }}>Garden Wishlist</h3>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+                Support our students by pledging organic compost, seeds, tools, and supplies.
+              </p>
+            </div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--teal)', fontWeight: 'bold', marginTop: '1rem' }}>View Supply Drive &rarr;</span>
+          </Link>
+
+          <Link href="/curriculum" className="glass-panel p-5" style={{ textDecoration: 'none', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📖</div>
+              <h3 style={{ fontSize: '1.1rem', color: 'var(--primary-purple)', marginBottom: '0.25rem' }}>Curriculum & Lessons</h3>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+                Structured hands-on units for soil science, fall planting, worms, and tasting.
+              </p>
+            </div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--teal)', fontWeight: 'bold', marginTop: '1rem' }}>Browse Curriculum &rarr;</span>
+          </Link>
+
         </div>
       </section>
 

@@ -378,3 +378,179 @@ export async function revokeAdmin(formData) {
   return { success: true }
 }
 
+export async function createWishlistItem(formData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const itemData = {
+    title: formData.get('title'),
+    description: formData.get('description'),
+    category: formData.get('category') || 'Tools & Gear',
+    quantity_needed: parseInt(formData.get('quantity_needed') || '1', 10),
+    urgency: formData.get('urgency') || 'normal',
+    link_url: formData.get('link_url') || null,
+  }
+
+  const { error } = await supabase.from('wishlist_items').insert([itemData])
+  if (error) return { error: error.message }
+
+  revalidatePath('/wishlist')
+  revalidatePath('/admin/wishlist')
+  return { success: true }
+}
+
+export async function deleteWishlistItem(formData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const id = formData.get('id')
+  const { error } = await supabase.from('wishlist_items').delete().eq('id', id)
+  if (error) return { error: error.message }
+
+  revalidatePath('/wishlist')
+  revalidatePath('/admin/wishlist')
+  return { success: true }
+}
+
+export async function updateWishlistClaimStatus(formData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const claimId = formData.get('claim_id')
+  const status = formData.get('status')
+
+  const { error } = await supabase.from('wishlist_claims').update({ status }).eq('id', claimId)
+  if (error) return { error: error.message }
+
+  revalidatePath('/wishlist')
+  revalidatePath('/admin/wishlist')
+  return { success: true }
+}
+
+export async function approveScheduleRequest(formData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const requestId = formData.get('request_id')
+  const { data: req } = await supabase.from('schedule_requests').select('*').eq('id', requestId).single()
+  if (!req) return { error: 'Request not found' }
+
+  // Compute shift start and end
+  // If time string is like "08:50 - 09:35" or standard format
+  const dateStr = req.preferred_date // YYYY-MM-DD
+  let startHour = 9, startMin = 0, endHour = 9, endMin = 45
+
+  if (req.preferred_time) {
+    const timeMatch = req.preferred_time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i)
+    if (timeMatch) {
+      let h = parseInt(timeMatch[1], 10)
+      const m = parseInt(timeMatch[2], 10)
+      const meridiem = timeMatch[3]?.toUpperCase()
+      if (meridiem === 'PM' && h < 12) h += 12
+      if (meridiem === 'AM' && h === 12) h = 0
+      startHour = h
+      startMin = m
+      endHour = h
+      endMin = m + 45
+      if (endMin >= 60) {
+        endHour += Math.floor(endMin / 60)
+        endMin = endMin % 60
+      }
+    }
+  }
+
+  const startDateTime = new Date(`${dateStr}T${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}:00`)
+  const endDateTime = new Date(`${dateStr}T${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}:00`)
+
+  // 1. Create shift in shifts table
+  const shiftTitle = `${req.grade} Class - ${req.teacher_name} (${req.topic})`
+  const shiftData = {
+    title: shiftTitle,
+    description: `Teacher Request for ${req.student_count || 20} students. Topic: ${req.topic}. ${req.notes ? 'Notes: ' + req.notes : ''}`,
+    start_time: startDateTime.toISOString(),
+    end_time: endDateTime.toISOString(),
+    type: 'class',
+    max_volunteers: 2
+  }
+
+  const { error: shiftError } = await supabase.from('shifts').insert([shiftData])
+  if (shiftError) return { error: shiftError.message }
+
+  // 2. Mark request approved
+  await supabase.from('schedule_requests').update({ 
+    status: 'approved',
+    admin_notes: 'Approved and added to calendar shift schedule.'
+  }).eq('id', requestId)
+
+  revalidatePath('/schedule')
+  revalidatePath('/admin/schedule')
+  return { success: true }
+}
+
+export async function declineScheduleRequest(formData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const requestId = formData.get('request_id')
+  const adminNotes = formData.get('admin_notes') || 'Declined'
+
+  const { error } = await supabase.from('schedule_requests').update({
+    status: 'declined',
+    admin_notes: adminNotes
+  }).eq('id', requestId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin/schedule')
+  return { success: true }
+}
+
+export async function updateWeatherNotice(formData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return { error: 'Not authorized' }
+
+  const status = formData.get('status') || 'normal'
+  const customMessage = formData.get('custom_message') || ''
+
+  const contentJson = JSON.stringify({
+    status,
+    custom_message: customMessage,
+    last_updated: new Date().toISOString()
+  })
+
+  // Upsert into site_content
+  const { error } = await supabase.from('site_content').upsert({
+    id: 'weather_notice',
+    content: contentJson,
+    updated_at: new Date().toISOString()
+  })
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/schedule')
+  revalidatePath('/schedule/monthly')
+  revalidatePath('/admin/schedule')
+  revalidatePath('/admin/content')
+  revalidatePath('/')
+  return { success: true }
+}
+
+

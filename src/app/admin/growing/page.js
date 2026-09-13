@@ -15,8 +15,17 @@ export default async function GrowingAdminPage() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: '1rem', color: 'var(--sapphire-blue)' }}>Manage Garden Beds</h2>
-      <p className="text-muted mb-8">Update what is currently growing in each square foot of our 12 garden beds.</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+        <div>
+          <h2 style={{ marginBottom: '0.25rem', color: 'var(--sapphire-blue)' }}>Manage Garden Beds</h2>
+          <p className="text-muted">Update what is currently growing in each square foot of our 12 garden beds.</p>
+        </div>
+        <div>
+          <a href="/growing/qr" target="_blank" className="btn btn-primary" style={{ padding: '0.45rem 0.9rem', fontSize: '0.85rem' }}>
+            📱 Print Bed QR Placards ↗
+          </a>
+        </div>
+      </div>
       
       {(!beds || beds.length === 0) ? (
         <p className="text-muted">No beds configured yet. Please run the grid setup SQL script.</p>

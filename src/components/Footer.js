@@ -11,7 +11,9 @@ export default function Footer() {
         </div>
         <div className={styles.links}>
           <Link href="/about">About</Link>
-          <Link href="/volunteer">Volunteer Shifts</Link>
+          <Link href="/schedule">Schedule</Link>
+          <Link href="/wishlist">Garden Wishlist</Link>
+          <Link href="/growing">What's Growing</Link>
           <Link href="/register">Register to Volunteer</Link>
         </div>
       </div>

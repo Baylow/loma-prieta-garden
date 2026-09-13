@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { logout } from '@/app/login/actions'
 import { cancelShiftSignup } from '@/app/schedule/actions'
+import VolunteerHourTracker from './VolunteerHourTracker'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -24,26 +25,35 @@ export default async function ProfilePage() {
     )
   }
 
-  // Fetch upcoming shifts the user is signed up for
+  // Fetch all shifts the user has signed up for (both past and upcoming)
   const { data: signups } = await supabase
     .from('shift_signups')
     .select('shift_id, shifts(*)')
     .eq('user_id', user.id)
     
-  const upcomingShifts = signups
+  const allUserShifts = signups
     ?.map(s => s.shifts)
-    .filter(shift => new Date(shift.start_time) >= new Date())
-    .sort((a, b) => new Date(a.start_time) - new Date(b.start_time)) || []
+    .filter(Boolean) || []
+
+  const now = new Date()
+  const upcomingShifts = allUserShifts
+    .filter(shift => new Date(shift.start_time) >= now)
+    .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
   return (
     <div className="container mt-8 mb-12 animate-fade-in-up">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8 no-print">
         <h1>Your Profile</h1>
-        <form action={logout}>
-          <button className="btn btn-secondary">Log Out</button>
-        </form>
+        <div className="flex gap-4">
+          {profile.role === 'admin' && (
+            <Link href="/admin" className="btn btn-primary">Admin Dashboard</Link>
+          )}
+          <form action={logout}>
+            <button className="btn btn-secondary">Log Out</button>
+          </form>
+        </div>
       </div>
       
       <div className="glass-panel" style={{ padding: '2rem' }}>
@@ -55,7 +65,14 @@ export default async function ProfilePage() {
             </div>
           )}
           <div style={{ flex: 1 }}>
-            <h2 style={{ marginBottom: '0.5rem', color: 'var(--primary-purple)' }}>{profile.name}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <h2 style={{ marginBottom: '0.5rem', color: 'var(--primary-purple)' }}>{profile.name}</h2>
+              {profile.role === 'admin' && (
+                <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--teal)', color: 'white', padding: '3px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                  Admin
+                </span>
+              )}
+            </div>
             {profile.bio && <p style={{ fontStyle: 'italic', color: '#666', marginBottom: '1rem' }}>"{profile.bio}"</p>}
             <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
               {profile.relationship && <p><strong>Relationship:</strong> {profile.relationship}</p>}
@@ -78,24 +95,22 @@ export default async function ProfilePage() {
             <p><strong>Type:</strong> <span style={{ textTransform: 'capitalize' }}>{profile.volunteer_type}</span> Volunteer</p>
             <p><strong>Class Support:</strong> {profile.class_info}</p>
             <p><strong>Training Interest:</strong> {profile.training_interest ? 'Yes' : 'No'}</p>
-            {profile.role === 'admin' && (
-              <div className="mt-4 p-4" style={{ backgroundColor: 'rgba(59, 181, 181, 0.1)', borderRadius: '8px', borderLeft: '4px solid var(--teal)' }}>
-                <p><strong>Administrator Account</strong></p>
-                <Link href="/admin" className="btn btn-primary" style={{ marginTop: '0.5rem', display: 'inline-block', padding: '0.5rem 1rem' }}>Go to Admin Dashboard</Link>
-              </div>
-            )}
           </div>
         </div>
 
-        <div className="mt-8">
+        {/* Volunteer Hour Tracker & District Milestone Component */}
+        <VolunteerHourTracker allShifts={allUserShifts} profile={profile} />
+
+        {/* Availability */}
+        <div className="mt-8 no-print">
           <h3 style={{ color: 'var(--teal)', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Availability</h3>
           <p className="mb-4"><strong>Total available hours per month:</strong> {profile.hours_per_month}</p>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
             {days.map(day => {
               const dayKey = day.toLowerCase()
-              const avail = profile.availability[dayKey]
-              if (!avail.morning && !avail.afternoon) return null; // Only show days they are available
+              const avail = profile.availability?.[dayKey]
+              if (!avail?.morning && !avail?.afternoon) return null;
               
               return (
                 <div key={day} style={{ backgroundColor: '#f8f6fc', padding: '1rem', borderRadius: '8px', textAlign: 'center', border: '1px solid rgba(102, 46, 128, 0.1)' }}>
@@ -108,7 +123,8 @@ export default async function ProfilePage() {
           </div>
         </div>
 
-        <div className="mt-8">
+        {/* Upcoming Shifts Section */}
+        <div className="mt-8 no-print">
           <h3 style={{ color: 'var(--teal)', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', marginBottom: '1rem' }}>My Upcoming Shifts</h3>
           {upcomingShifts.length === 0 ? (
             <p className="text-muted">You are not signed up for any upcoming shifts. <Link href="/schedule" style={{ color: 'var(--sapphire-blue)', textDecoration: 'underline' }}>View the schedule to sign up.</Link></p>

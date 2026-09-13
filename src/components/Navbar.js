@@ -31,6 +31,7 @@ export default function Navbar() {
           <Link href="/growing" onClick={closeMenu}>What's Growing</Link>
           <Link href="/curriculum" onClick={closeMenu}>Curriculum</Link>
           <Link href="/schedule" onClick={closeMenu}>Schedule</Link>
+          <Link href="/wishlist" onClick={closeMenu}>Wishlist</Link>
           <Link href="/register" onClick={closeMenu}>Register to Volunteer</Link>
           <Link href="/updates" onClick={closeMenu}>Updates</Link>
         </nav>

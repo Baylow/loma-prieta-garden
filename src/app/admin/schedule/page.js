@@ -1,5 +1,14 @@
 import { createClient } from '@/utils/supabase/server'
-import { createShift, deleteShift, bulkCreateShifts, assignVolunteerToShift, removeVolunteerFromShift } from '../actions'
+import { 
+  createShift, 
+  deleteShift, 
+  bulkCreateShifts, 
+  assignVolunteerToShift, 
+  removeVolunteerFromShift,
+  approveScheduleRequest,
+  declineScheduleRequest,
+  updateWeatherNotice
+} from '../actions'
 import Link from 'next/link'
 
 const STANDARD_BLOCKS = [
@@ -47,6 +56,28 @@ export default async function AdminSchedulePage(props) {
     console.error('Error fetching admin shifts:', shiftsError)
   }
 
+  // Fetch Teacher Booking Requests
+  const { data: teacherRequests } = await supabase
+    .from('schedule_requests')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  const pendingRequests = (teacherRequests || []).filter(r => r.status === 'pending')
+
+  // Fetch Weather / Rain Notice
+  const { data: weatherContent } = await supabase
+    .from('site_content')
+    .select('content')
+    .eq('id', 'weather_notice')
+    .single()
+
+  let weatherNoticeData = { status: 'normal', custom_message: '' }
+  if (weatherContent?.content) {
+    try {
+      weatherNoticeData = JSON.parse(weatherContent.content)
+    } catch (e) {}
+  }
+
   // Fetch all registered volunteers for assign dropdowns
   const { data: volunteers } = await supabase
     .from('profiles')
@@ -73,29 +104,168 @@ export default async function AdminSchedulePage(props) {
 
   return (
     <div>
+      {/* 1. Header Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <h2 style={{ marginBottom: '0.25rem', color: 'var(--sapphire-blue)' }}>Weekly Schedule</h2>
-          <p className="text-muted">Claim daily 45-min blocks and manage volunteer assignments.</p>
+          <h2 style={{ marginBottom: '0.25rem', color: 'var(--sapphire-blue)' }}>Schedule & Class Management</h2>
+          <p className="text-muted">Manage daily 45-min blocks, teacher booking requests, and volunteer assignments.</p>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link href="/schedule/request" target="_blank" className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+            🧑‍🏫 Teacher Request Form ↗
+          </Link>
           <Link href="/schedule/monthly" className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-            📅 Monthly Calendar / Print
+            📅 Monthly / Print View
           </Link>
           <a href="/api/calendar/export" className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
             📥 Export .ics
           </a>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: '0.5rem' }}>
-            <Link href={`?week=${weekOffset - 1}`} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}>&larr; Prev Week</Link>
-            <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>
-              {weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(weekStart.getTime() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-            </span>
-            <Link href={`?week=${weekOffset + 1}`} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}>Next Week &rarr;</Link>
-          </div>
         </div>
       </div>
 
+      {/* 2. Weather Advisory & Rain Plan Status Control */}
+      <div style={{ padding: '1.25rem', backgroundColor: '#ecfeff', border: '1px solid #a5f3fc', borderRadius: '10px', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <h3 style={{ fontSize: '1.05rem', color: '#0e7490', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span>🌧️</span>
+            <span>Coordinator Weather Advisory & Rain Plan Notice</span>
+          </h3>
+          <span style={{ fontSize: '0.75rem', backgroundColor: '#cffafe', color: '#155e75', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
+            Current Status: {weatherNoticeData.status.toUpperCase()}
+          </span>
+        </div>
+
+        <form action={updateWeatherNotice} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '0.75rem', alignItems: 'center' }}>
+            <select 
+              name="status" 
+              defaultValue={weatherNoticeData.status || 'normal'}
+              style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff', fontSize: '0.85rem', fontWeight: '500' }}
+            >
+              <option value="normal">☀️ Normal Outdoor Sessions</option>
+              <option value="pavilion">⛺ Covered Pavilion Plan (Wet Ground)</option>
+              <option value="postponed">🌧️ Rain Postponed (Wet Weather)</option>
+              <option value="heat_wind">💨 Weather / Wind Advisory</option>
+            </select>
+
+            <input 
+              type="text" 
+              name="custom_message" 
+              defaultValue={weatherNoticeData.custom_message || ''}
+              placeholder="Custom note for parents & teachers (e.g. Bring rain boots; meet under middle pavilion)"
+              style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+            />
+
+            <button type="submit" className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+              Update Notice
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* 3. Pending Teacher Requests Notification Section */}
+      {pendingRequests.length > 0 && (
+        <div style={{ padding: '1.5rem', backgroundColor: '#fffbeb', border: '2px solid #fde68a', borderRadius: '10px', marginBottom: '2.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <span style={{ fontSize: '1.5rem' }}>🧑‍🏫</span>
+            <h3 style={{ margin: 0, color: '#92400e', fontSize: '1.15rem' }}>
+              Pending Teacher Session Requests ({pendingRequests.length})
+            </h3>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {pendingRequests.map(req => {
+              const reqDate = new Date(req.preferred_date + 'T12:00:00')
+              return (
+                <div 
+                  key={req.id}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    padding: '1.25rem',
+                    borderRadius: '8px',
+                    border: '1px solid #fef3c7',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '1.25rem',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                  }}
+                >
+                  <div style={{ flex: '1 1 350px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                      <span style={{ fontWeight: 'bold', color: 'var(--primary-purple)', fontSize: '1.05rem' }}>
+                        {req.grade} • {req.teacher_name}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', backgroundColor: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
+                        {req.student_count || 20} Students
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: '0.9rem', color: '#1e293b', fontWeight: '600', marginBottom: '0.25rem' }}>
+                      📅 {reqDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} • ⏰ {req.preferred_time}
+                    </div>
+
+                    <div style={{ fontSize: '0.85rem', color: 'var(--teal)', fontWeight: 'bold' }}>
+                      Topic: {req.topic}
+                    </div>
+
+                    {req.notes && (
+                      <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.35rem', fontStyle: 'italic' }}>
+                        "{req.notes}"
+                      </div>
+                    )}
+
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                      Contact: <a href={`mailto:${req.teacher_email}`} style={{ color: 'var(--sapphire-blue)' }}>{req.teacher_email}</a>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <form action={approveScheduleRequest}>
+                      <input type="hidden" name="request_id" value={req.id} />
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary"
+                        style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', backgroundColor: '#16a34a' }}
+                      >
+                        ✓ Approve & Add to Calendar
+                      </button>
+                    </form>
+
+                    <form action={declineScheduleRequest}>
+                      <input type="hidden" name="request_id" value={req.id} />
+                      <button 
+                        type="submit" 
+                        className="btn btn-secondary"
+                        style={{ padding: '0.5rem 0.85rem', fontSize: '0.85rem', color: '#b91c1c' }}
+                      >
+                        Decline
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Week Navigation */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', backgroundColor: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+        <Link href={`?week=${weekOffset - 1}`} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}>
+          &larr; Prev Week
+        </Link>
+        <span style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--primary-purple)' }}>
+          School Week: {weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(weekStart.getTime() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+        </span>
+        <Link href={`?week=${weekOffset + 1}`} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}>
+          Next Week &rarr;
+        </Link>
+      </div>
+
+      {/* 4. Daily Schedule Calendar Grid */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         {schoolDays.map(date => {
           const year = date.getFullYear()
