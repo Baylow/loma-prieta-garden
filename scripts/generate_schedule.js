@@ -168,11 +168,11 @@ while (cur <= endDate) {
         });
       }
 
-      // Templeton / Cole: Every Other Week (Week A), 1:00 - 1:40 PM
-      if (isWeekA) {
+      // Templeton / Cole: Every Other Week (Week B - starting Sept 11), 1:00 - 1:40 PM
+      if (isWeekB) {
         shifts.push({
           title: 'Templeton/Cole Class Garden',
-          description: 'Every other week garden class. Class Leads: Joanna Rauh & Lauren Miller',
+          description: 'Every other week garden class (Started Sept 11). Class Leads: Joanna Rauh & Lauren Miller',
           type: 'class',
           start_time: pacificToUTC(dateStr, '13:00'),
           end_time: pacificToUTC(dateStr, '13:40'),
