@@ -115,6 +115,10 @@
   gap: 0.35rem;
 }
 
+.mission {
+  width: 100%;
+}
+
 .missionCard {
   padding: 3rem;
   text-align: center;

@@ -93,11 +93,9 @@ a:hover {
   transform: translateY(-2px);
 }
 
-/* Glassmorphism utility */
+/* Glass / Panel utility */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #ffffff;
   border: 1px solid rgba(0, 75, 141, 0.1);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
