@@ -17,6 +17,7 @@ function escapeICS(str) {
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const month = searchParams.get('month'); // optional YYYY-MM
+  const hideTentative = searchParams.get('hideTentative') === 'true';
   const supabase = await createClient();
 
   let query = supabase.from('shifts').select('*').order('start_time', { ascending: true });
@@ -30,10 +31,22 @@ export async function GET(request) {
     query = query.gte('start_time', startOfMonth.toISOString()).lte('start_time', endOfMonth.toISOString());
   }
 
-  const { data: shifts, error } = await query;
+  const { data: rawShifts, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  let shifts = rawShifts || [];
+
+  if (hideTentative) {
+    shifts = shifts.filter(shift => {
+      const isTentative = 
+        shift.title?.toLowerCase().includes('tentative') || 
+        shift.description?.toLowerCase().includes('tentative') ||
+        shift.status === 'tentative';
+      return !isTentative;
+    });
   }
 
   let ics = [
@@ -42,11 +55,11 @@ export async function GET(request) {
     'PRODID:-//Loma Prieta School Garden//Volunteer Calendar//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    'X-WR-CALNAME:Loma Prieta Garden Schedule',
+    `X-WR-CALNAME:${hideTentative ? 'Loma Prieta Garden Schedule (Confirmed)' : 'Loma Prieta Garden Schedule'}`,
     'X-WR-TIMEZONE:America/Los_Angeles'
   ];
 
-  (shifts || []).forEach(shift => {
+  shifts.forEach(shift => {
     const startDate = new Date(shift.start_time);
     const endDate = new Date(shift.end_time);
     const uid = `${shift.id}@lomagarden.org`;
@@ -70,7 +83,8 @@ export async function GET(request) {
 
   ics.push('END:VCALENDAR');
 
-  const filename = month ? `loma-garden-${month}.ics` : 'loma-garden-schedule.ics';
+  const prefix = hideTentative ? 'loma-garden-confirmed' : 'loma-garden';
+  const filename = month ? `${prefix}-${month}.ics` : `${prefix}-schedule.ics`;
 
   return new NextResponse(ics.join('\r\n'), {
     headers: {

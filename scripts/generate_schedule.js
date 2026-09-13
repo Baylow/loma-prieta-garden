@@ -35,6 +35,21 @@ function getNthWeekdayOfMonth(date) {
   return Math.floor((day - 1) / 7) + 1;
 }
 
+// Week 0 reference: Start of school year (Monday Aug 31, 2026)
+const schoolStartMonday = new Date(2026, 7, 31); // Aug 31, 2026
+
+function getWeekIndex(date) {
+  // Get Monday of current date's week
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const day = d.getDay();
+  const diffToMonday = (day === 0 ? -6 : 1) - day;
+  d.setDate(d.getDate() + diffToMonday);
+  
+  const diffTime = d.getTime() - schoolStartMonday.getTime();
+  const diffWeeks = Math.round(diffTime / (7 * 24 * 60 * 60 * 1000));
+  return diffWeeks;
+}
+
 const startDate = new Date(2026, 8, 1); // Sept 1, 2026
 const endDate = new Date(2027, 5, 15);  // June 15, 2027
 
@@ -47,25 +62,38 @@ while (cur <= endDate) {
   const dayOfMonth = cur.getDate();
   const dayOfWeek = cur.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
   const nthWeekday = getNthWeekdayOfMonth(cur);
+  const weekIdx = getWeekIndex(cur);
+  const isWeekA = (weekIdx % 2 === 0);
+  const isWeekB = (weekIdx % 2 === 1);
   const dateStr = `${year}-${pad(month + 1)}-${pad(dayOfMonth)}`;
 
   // Skip school holidays / breaks:
+  // Labor Day: Sep 7, 2026
+  const isLaborDay = (month === 8 && dayOfMonth === 7);
   // Thanksgiving week: Nov 23 - Nov 27, 2026
   const isThanksgivingBreak = (month === 10 && dayOfMonth >= 23 && dayOfMonth <= 27);
   // Winter break: Dec 21, 2026 - Jan 1, 2027
   const isWinterBreak = (month === 11 && dayOfMonth >= 21) || (month === 0 && dayOfMonth === 1);
-  // Spring break: April 12 - April 16, 2027
-  const isSpringBreak = (month === 3 && dayOfMonth >= 12 && dayOfMonth <= 16);
+  // MLK Day: Jan 18, 2027
+  const isMLK = (month === 0 && dayOfMonth === 18);
+  // Presidents / Ski week: Feb 15 - Feb 19, 2027
+  const isPresidentsBreak = (month === 1 && dayOfMonth >= 15 && dayOfMonth <= 19);
+  // Spring break: April 5 - April 9, 2027
+  const isSpringBreak = (month === 3 && dayOfMonth >= 5 && dayOfMonth <= 9);
+  // Memorial Day: May 31, 2027
+  const isMemorialDay = (month === 4 && dayOfMonth === 31);
 
-  if (!isThanksgivingBreak && !isWinterBreak && !isSpringBreak) {
+  const isHoliday = isLaborDay || isThanksgivingBreak || isWinterBreak || isMLK || isPresidentsBreak || isSpringBreak || isMemorialDay;
+
+  if (!isHoliday) {
 
     // 1. MONDAY
     if (dayOfWeek === 1) {
-      // Ignoffo: 1st and 3rd Monday, 2:00 - 2:45 PM (14:00 - 14:45)
-      if (nthWeekday === 1 || nthWeekday === 3) {
+      // Ignoffo: Every Other Week (Week A), 2:00 - 2:45 PM
+      if (isWeekA) {
         shifts.push({
           title: 'Ignoffo Class Garden',
-          description: 'Bi-weekly class garden block. Class Lead: Rebecca Whitmer',
+          description: 'Every other week garden class. Class Lead: Rebecca Whitmer',
           type: 'class',
           start_time: pacificToUTC(dateStr, '14:00'),
           end_time: pacificToUTC(dateStr, '14:45'),
@@ -76,11 +104,11 @@ while (cur <= endDate) {
 
     // 2. TUESDAY
     if (dayOfWeek === 2) {
-      // Richter: 1st Tuesday of the month, 12:15 - 1:15 PM (12:15 - 13:15) [TENTATIVE]
+      // Richter: 1st Tuesday of the month, 12:15 - 1:15 PM [TENTATIVE]
       if (nthWeekday === 1) {
         shifts.push({
           title: 'Richter Class Garden (Tentative)',
-          description: 'Monthly garden class (1st Tuesday) - Tentative. Class Lead: Stephanie Rovegno',
+          description: '[TENTATIVE SCHEDULE] Monthly garden class (Every 1st Tuesday of month). Class Lead: Stephanie Rovegno',
           type: 'class',
           start_time: pacificToUTC(dateStr, '12:15'),
           end_time: pacificToUTC(dateStr, '13:15'),
@@ -91,11 +119,11 @@ while (cur <= endDate) {
 
     // 3. THURSDAY
     if (dayOfWeek === 4) {
-      // Hoefer: 1st & 3rd Thursday, 8:50 - 9:20 AM (08:50 - 09:20)
-      if (nthWeekday === 1 || nthWeekday === 3) {
+      // Hoefer: Every Other Week (Week A), 8:50 - 9:20 AM
+      if (isWeekA) {
         shifts.push({
           title: 'Hoefer Class Garden',
-          description: 'Bi-weekly garden class (1st & 3rd Thursday). Class Leads: Amy Wakim, Karly Fogg, Erin Matteucci, Stephen Garaffo, Irene Whitney',
+          description: 'Every other week garden class. Class Leads: Amy Wakim, Karly Fogg, Erin Matteucci, Stephen Garaffo, Irene Whitney',
           type: 'class',
           start_time: pacificToUTC(dateStr, '08:50'),
           end_time: pacificToUTC(dateStr, '09:20'),
@@ -103,7 +131,7 @@ while (cur <= endDate) {
         });
       }
 
-      // Perry / Ray: Weekly Thursday, 12:00 - 12:45 PM
+      // Perry / Ray: Every Week Thursday, 12:00 - 12:45 PM
       shifts.push({
         title: 'Perry/Ray Class Garden',
         description: 'Weekly garden class. Class Lead: Adelia Rowland',
@@ -116,11 +144,11 @@ while (cur <= endDate) {
 
     // 4. FRIDAY
     if (dayOfWeek === 5) {
-      // Zook: 1st & 3rd Friday (Every other Friday), 9:00 - 9:40 AM
-      if (nthWeekday === 1 || nthWeekday === 3) {
+      // Zook: Every Other Week (Week A), 9:00 - 9:40 AM
+      if (isWeekA) {
         shifts.push({
           title: 'Zook Class Garden',
-          description: 'Bi-weekly garden class (1st & 3rd Friday). Class Leads: Pam Hagedorn & Stephen Garaffo',
+          description: 'Every other week garden class. Class Leads: Pam Hagedorn & Stephen Garaffo',
           type: 'class',
           start_time: pacificToUTC(dateStr, '09:00'),
           end_time: pacificToUTC(dateStr, '09:40'),
@@ -128,11 +156,11 @@ while (cur <= endDate) {
         });
       }
 
-      // DePiazza: 3rd Friday of the month, 10:30 - 11:30 AM [TENTATIVE]
+      // DePiazza: Every 3rd Friday of the month (or every 3rd week), 10:30 - 11:30 AM [TENTATIVE]
       if (nthWeekday === 3) {
         shifts.push({
           title: 'DePiazza Class Garden (Tentative)',
-          description: 'Monthly garden class (3rd Friday) - Tentative. Open for volunteer leads!',
+          description: '[TENTATIVE SCHEDULE] Monthly garden class (Every 3rd Friday). Open for volunteer leads!',
           type: 'class',
           start_time: pacificToUTC(dateStr, '10:30'),
           end_time: pacificToUTC(dateStr, '11:30'),
@@ -140,11 +168,11 @@ while (cur <= endDate) {
         });
       }
 
-      // Templeton / Cole: 1st & 3rd Friday (Every other Friday), 1:00 - 1:40 PM (13:00 - 13:40)
-      if (nthWeekday === 1 || nthWeekday === 3) {
+      // Templeton / Cole: Every Other Week (Week A), 1:00 - 1:40 PM
+      if (isWeekA) {
         shifts.push({
           title: 'Templeton/Cole Class Garden',
-          description: 'Bi-weekly garden class (1st & 3rd Friday). Class Leads: Joanna Rauh & Lauren Miller',
+          description: 'Every other week garden class. Class Leads: Joanna Rauh & Lauren Miller',
           type: 'class',
           start_time: pacificToUTC(dateStr, '13:00'),
           end_time: pacificToUTC(dateStr, '13:40'),
@@ -152,11 +180,11 @@ while (cur <= endDate) {
         });
       }
 
-      // Ponkey: 1st & 3rd Friday, 2:00 - 2:45 PM (14:00 - 14:45) [TENTATIVE]
-      if (nthWeekday === 1 || nthWeekday === 3) {
+      // Ponkey: Every Other Week (Week A), 2:00 - 2:45 PM [TENTATIVE]
+      if (isWeekA) {
         shifts.push({
           title: 'Ponkey Class Garden (Tentative)',
-          description: 'Bi-weekly garden class (1st & 3rd Friday) - Tentative. Class Lead: Rebecca Whitmer',
+          description: '[TENTATIVE SCHEDULE] Every other week garden class (Alternating with LaMacchia). Class Lead: Rebecca Whitmer',
           type: 'class',
           start_time: pacificToUTC(dateStr, '14:00'),
           end_time: pacificToUTC(dateStr, '14:45'),
@@ -164,11 +192,11 @@ while (cur <= endDate) {
         });
       }
 
-      // LaMacchia: 2nd & 4th Friday, 2:00 - 2:45 PM (14:00 - 14:45)
-      if (nthWeekday === 2 || nthWeekday === 4) {
+      // LaMacchia: Every Other Week (Week B), 2:00 - 2:45 PM
+      if (isWeekB) {
         shifts.push({
           title: 'LaMacchia Class Garden',
-          description: 'Bi-weekly garden class (2nd & 4th Friday). Class Leads: Pam Hagedorn & Kathy Adams',
+          description: 'Every other week garden class (Alternating with Ponkey). Class Leads: Pam Hagedorn & Kathy Adams',
           type: 'class',
           start_time: pacificToUTC(dateStr, '14:00'),
           end_time: pacificToUTC(dateStr, '14:45'),

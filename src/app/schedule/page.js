@@ -55,8 +55,11 @@ export default async function SchedulePage() {
           <Link href="/schedule/monthly" className="btn btn-secondary" style={{ padding: '0.35rem 0.85rem', fontSize: '0.85rem' }}>
             🖨️ Printable Calendar
           </Link>
-          <a href="/api/calendar/export" className="btn btn-primary" style={{ padding: '0.35rem 0.85rem', fontSize: '0.85rem' }} title="Download iCal file to sync with Google Calendar or Apple Calendar">
-            📥 Export to Calendar (.ics)
+          <a href="/api/calendar/export?hideTentative=true" className="btn btn-primary" style={{ padding: '0.35rem 0.85rem', fontSize: '0.85rem' }} title="Download iCal file with confirmed shifts only">
+            📥 Export Confirmed (.ics)
+          </a>
+          <a href="/api/calendar/export" className="btn btn-secondary" style={{ padding: '0.35rem 0.85rem', fontSize: '0.85rem' }} title="Download all shifts including tentative">
+            Export All (.ics)
           </a>
         </div>
       </div>

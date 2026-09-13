@@ -9,6 +9,7 @@ export default function MonthlyCalendar({ initialShifts }) {
   const [currentYear, setCurrentYear] = useState(2026);
   const [currentMonth, setCurrentMonth] = useState(8); // 8 = September (0-indexed)
   const [viewMode, setViewMode] = useState('single'); // 'single' or 'full-year'
+  const [hideTentative, setHideTentative] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
 
   // Available 10 school year months (September 2026 - June 2027)
@@ -77,6 +78,14 @@ export default function MonthlyCalendar({ initialShifts }) {
     return d.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' });
   };
 
+  const isShiftTentative = (shift) => {
+    return (
+      shift.title?.toLowerCase().includes('tentative') ||
+      shift.description?.toLowerCase().includes('tentative') ||
+      shift.status === 'tentative'
+    );
+  };
+
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   // Helper to build a calendar table for a given year & month
@@ -87,8 +96,11 @@ export default function MonthlyCalendar({ initialShifts }) {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const prevMonthDays = new Date(year, month, 0).getDate();
 
-    // Filter shifts for this month in California timezone
+    // Filter shifts for this month in California timezone (and apply hideTentative if active)
     const mShifts = (initialShifts || []).filter(shift => {
+      if (hideTentative && isShiftTentative(shift)) {
+        return false;
+      }
       const p = getPacificParts(shift.start_time);
       return p.year === year && p.month === month;
     });
@@ -243,6 +255,7 @@ export default function MonthlyCalendar({ initialShifts }) {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         {cell.shifts.map(shift => {
                           const isClass = shift.type === 'class';
+                          const isTentative = isShiftTentative(shift);
 
                           return (
                             <div
@@ -253,8 +266,8 @@ export default function MonthlyCalendar({ initialShifts }) {
                                 fontSize: '0.7rem',
                                 padding: '2px 4px',
                                 borderRadius: '4px',
-                                backgroundColor: isClass ? 'rgba(102, 46, 128, 0.08)' : 'rgba(0, 75, 141, 0.08)',
-                                borderLeft: `3px solid ${isClass ? 'var(--primary-purple)' : 'var(--sapphire-blue)'}`,
+                                backgroundColor: isTentative ? 'rgba(234, 88, 12, 0.08)' : isClass ? 'rgba(102, 46, 128, 0.08)' : 'rgba(0, 75, 141, 0.08)',
+                                borderLeft: `3px solid ${isTentative ? '#ea580c' : isClass ? 'var(--primary-purple)' : 'var(--sapphire-blue)'}`,
                                 color: '#1e293b',
                                 cursor: 'pointer',
                                 lineHeight: '1.2',
@@ -264,7 +277,7 @@ export default function MonthlyCalendar({ initialShifts }) {
                               }}
                               title={`${formatTime(shift.start_time)} - ${shift.title}`}
                             >
-                              <span style={{ fontWeight: 'bold', color: isClass ? 'var(--primary-purple)' : 'var(--sapphire-blue)' }}>
+                              <span style={{ fontWeight: 'bold', color: isTentative ? '#ea580c' : isClass ? 'var(--primary-purple)' : 'var(--sapphire-blue)' }}>
                                 {formatTime(shift.start_time)}
                               </span>{' '}
                               {shift.title.replace(' Class Garden', '')}
@@ -284,6 +297,9 @@ export default function MonthlyCalendar({ initialShifts }) {
   };
 
   const formattedMonthParam = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}`;
+  const exportUrl = viewMode === 'single'
+    ? `/api/calendar/export?month=${formattedMonthParam}${hideTentative ? '&hideTentative=true' : ''}`
+    : `/api/calendar/export${hideTentative ? '?hideTentative=true' : ''}`;
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -395,6 +411,28 @@ export default function MonthlyCalendar({ initialShifts }) {
           >
             Full Year (All 10 Months)
           </button>
+          <span style={{ color: '#cbd5e1' }}>|</span>
+          
+          {/* HIDE TENTATIVE TOGGLE BUTTON */}
+          <button
+            onClick={() => setHideTentative(!hideTentative)}
+            title="Toggle tentative class spots (Ponkey, Richter, DePiazza) in calendar and export"
+            style={{
+              padding: '0.35rem 0.75rem',
+              borderRadius: '6px',
+              border: hideTentative ? '1px solid #e11d48' : '1px solid #cbd5e1',
+              backgroundColor: hideTentative ? '#fff1f2' : '#fff',
+              color: hideTentative ? '#e11d48' : '#475569',
+              fontWeight: '600',
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem'
+            }}
+          >
+            {hideTentative ? '👁️ Show Tentative' : '🚫 Hide Tentative'}
+          </button>
         </div>
 
         {/* Print & Export Actions */}
@@ -428,11 +466,22 @@ export default function MonthlyCalendar({ initialShifts }) {
             📄 Print Full Year PDF (Sept–June)
           </button>
           
-          <a href={`/api/calendar/export?month=${formattedMonthParam}`} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
-            📅 Export .ics
+          <a href={exportUrl} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} title={hideTentative ? "Export confirmed schedule to iCal (.ics)" : "Export full schedule to iCal (.ics)"}>
+            📅 {hideTentative ? 'Export Confirmed .ics' : 'Export .ics'}
           </a>
         </div>
       </div>
+
+      {hideTentative && (
+        <div className="no-print" style={{ backgroundColor: '#fff1f2', border: '1px solid #fecdd3', color: '#9f1239', padding: '0.5rem 1rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>
+            🔒 <strong>Tentative spots hidden:</strong> Currently displaying and exporting <strong>confirmed classes only</strong>.
+          </span>
+          <button onClick={() => setHideTentative(false)} style={{ background: 'none', border: 'none', color: '#be123c', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>
+            Show Tentative
+          </button>
+        </div>
+      )}
 
       {/* RENDER CALENDAR CONTENT */}
       {viewMode === 'single' ? (
@@ -441,7 +490,7 @@ export default function MonthlyCalendar({ initialShifts }) {
         <div>
           <div className="no-print" style={{ backgroundColor: 'rgba(59, 181, 181, 0.1)', padding: '0.75rem 1.25rem', borderRadius: '8px', borderLeft: '4px solid var(--teal)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.9rem', color: '#0f766e', fontWeight: '500' }}>
-              Showing all 10 months of the school year (September 2026 – June 2027). Click <strong>"Print Full Year PDF"</strong> to generate a clean 10-page printable PDF.
+              Showing all 10 months of the school year (September 2026 – June 2027). Click <strong>"Print Full Year PDF"</strong> to generate a clean 10-page printable PDF {hideTentative ? '(confirmed classes only)' : ''}.
             </span>
             <button onClick={handlePrintFullYear} className="btn btn-primary" style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem' }}>
               🖨️ Open Print / PDF Dialog
