@@ -24,52 +24,64 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Quick Action Feature Grid */}
-      <section className="container mt-6 mb-6">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
+      {/* Spacious 1x4 Quick Action Feature Row */}
+      <section className={`container ${styles.featuresSection}`}>
+        <div className={styles.featureRow}>
           
-          <Link href="/schedule" className="glass-panel p-5" style={{ textDecoration: 'none', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <Link href="/schedule" className={styles.featureCard}>
             <div>
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📅</div>
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--primary-purple)', marginBottom: '0.25rem' }}>Schedule & Weather</h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
-                Live mountain weather forecast, 45-min class blocks, and parent volunteer sign-ups.
+              <div className={styles.featureIcon}>📅</div>
+              <h3>Schedule & Weather</h3>
+              <p>
+                Live mountain weather forecast, 45-min class blocks, and volunteer sign-ups.
               </p>
             </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--teal)', fontWeight: 'bold', marginTop: '1rem' }}>View Schedule &rarr;</span>
+            <div className={styles.featureLink}>
+              <span>View Schedule</span>
+              <span>&rarr;</span>
+            </div>
           </Link>
 
-          <Link href="/growing" className="glass-panel p-5" style={{ textDecoration: 'none', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <Link href="/growing" className={styles.featureCard}>
             <div>
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌿</div>
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--primary-purple)', marginBottom: '0.25rem' }}>What's Growing</h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+              <div className={styles.featureIcon}>🌿</div>
+              <h3>What's Growing</h3>
+              <p>
                 Interactive 10×3 square-foot bed maps and printable QR signs for Beds 1–12.
               </p>
             </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--teal)', fontWeight: 'bold', marginTop: '1rem' }}>Explore Beds &rarr;</span>
+            <div className={styles.featureLink}>
+              <span>Explore Beds</span>
+              <span>&rarr;</span>
+            </div>
           </Link>
 
-          <Link href="/wishlist" className="glass-panel p-5" style={{ textDecoration: 'none', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <Link href="/wishlist" className={styles.featureCard}>
             <div>
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎁</div>
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--primary-purple)', marginBottom: '0.25rem' }}>Garden Wishlist</h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+              <div className={styles.featureIcon}>🎁</div>
+              <h3>Garden Wishlist</h3>
+              <p>
                 Support our students by pledging organic compost, seeds, tools, and supplies.
               </p>
             </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--teal)', fontWeight: 'bold', marginTop: '1rem' }}>View Supply Drive &rarr;</span>
+            <div className={styles.featureLink}>
+              <span>View Supply Drive</span>
+              <span>&rarr;</span>
+            </div>
           </Link>
 
-          <Link href="/curriculum" className="glass-panel p-5" style={{ textDecoration: 'none', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <Link href="/curriculum" className={styles.featureCard}>
             <div>
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📖</div>
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--primary-purple)', marginBottom: '0.25rem' }}>Curriculum & Lessons</h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+              <div className={styles.featureIcon}>📖</div>
+              <h3>Curriculum & Lessons</h3>
+              <p>
                 Structured hands-on units for soil science, fall planting, worms, and tasting.
               </p>
             </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--teal)', fontWeight: 'bold', marginTop: '1rem' }}>Browse Curriculum &rarr;</span>
+            <div className={styles.featureLink}>
+              <span>Browse Curriculum</span>
+              <span>&rarr;</span>
+            </div>
           </Link>
 
         </div>
