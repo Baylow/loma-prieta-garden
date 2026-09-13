@@ -8,11 +8,6 @@ const shifts = [];
 
 function pad(n) { return n < 10 ? '0' + n : n; }
 
-function getWeekOfMonth(date) {
-  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-  return Math.ceil((date.getDate() + (firstDay === 0 ? 6 : firstDay - 1)) / 7);
-}
-
 // Check which Nth occurrence of a weekday in that month (1st Tuesday, 3rd Friday, etc.)
 function getNthWeekdayOfMonth(date) {
   const day = date.getDate();
@@ -25,7 +20,6 @@ let zookToggle = true;
 while (cur <= endDate) {
   const year = cur.getFullYear();
   const month = cur.getMonth();
-  const monthName = cur.toLocaleString('default', { month: 'short' });
   const dayOfMonth = cur.getDate();
   const dayOfWeek = cur.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
   const nthWeekday = getNthWeekdayOfMonth(cur);
@@ -39,8 +33,8 @@ while (cur <= endDate) {
         title: 'Ignoffo Class Garden',
         description: 'Bi-weekly class garden block. Class Lead: Rebecca Witmer',
         type: 'class',
-        start_time: `${dateStr}T14:15:00`,
-        end_time: `${dateStr}T14:45:00`,
+        start_time_expr: `'${dateStr} 14:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
+        end_time_expr: `'${dateStr} 14:45:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
         max_volunteers: 2
       });
     }
@@ -54,8 +48,8 @@ while (cur <= endDate) {
         title: 'Richter Class Garden',
         description: 'Monthly garden class (1st Tuesday). Class Lead: Stephanie Rovegno',
         type: 'class',
-        start_time: `${dateStr}T12:15:00`,
-        end_time: `${dateStr}T13:15:00`,
+        start_time_expr: `'${dateStr} 12:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
+        end_time_expr: `'${dateStr} 13:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
         max_volunteers: 2
       });
     }
@@ -69,8 +63,8 @@ while (cur <= endDate) {
         title: 'Hoefer Class Garden',
         description: 'Bi-weekly garden class. Class Leads: Amy Wakim and Karly Fogg',
         type: 'class',
-        start_time: `${dateStr}T08:50:00`,
-        end_time: `${dateStr}T09:20:00`,
+        start_time_expr: `'${dateStr} 08:50:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
+        end_time_expr: `'${dateStr} 09:20:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
         max_volunteers: 2
       });
     }
@@ -80,8 +74,8 @@ while (cur <= endDate) {
       title: 'Ray/Perry Class Garden',
       description: 'Weekly garden class. Class Lead: Adelia',
       type: 'class',
-      start_time: `${dateStr}T12:15:00`,
-      end_time: `${dateStr}T12:45:00`,
+      start_time_expr: `'${dateStr} 12:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
+      end_time_expr: `'${dateStr} 12:45:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
       max_volunteers: 2
     });
 
@@ -91,8 +85,8 @@ while (cur <= endDate) {
         title: 'Templeton/Cole Class Garden',
         description: 'Bi-weekly garden class (2x/month). Class Lead: Joanna Rauh',
         type: 'class',
-        start_time: `${dateStr}T12:15:00`,
-        end_time: `${dateStr}T13:15:00`,
+        start_time_expr: `'${dateStr} 12:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
+        end_time_expr: `'${dateStr} 13:15:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
         max_volunteers: 2
       });
     }
@@ -106,8 +100,8 @@ while (cur <= endDate) {
         title: 'Zook Class Garden',
         description: 'Every other week garden class. Volunteers welcome!',
         type: 'class',
-        start_time: `${dateStr}T09:00:00`,
-        end_time: `${dateStr}T10:00:00`,
+        start_time_expr: `'${dateStr} 09:00:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
+        end_time_expr: `'${dateStr} 10:00:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
         max_volunteers: 2
       });
     }
@@ -119,8 +113,8 @@ while (cur <= endDate) {
         title: 'DePiazza Class Garden',
         description: 'Monthly garden class (3rd Friday). Open for volunteer leads!',
         type: 'class',
-        start_time: `${dateStr}T10:30:00`,
-        end_time: `${dateStr}T11:30:00`,
+        start_time_expr: `'${dateStr} 10:30:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
+        end_time_expr: `'${dateStr} 11:30:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
         max_volunteers: 2
       });
     }
@@ -133,8 +127,8 @@ while (cur <= endDate) {
         title: 'Zanotto 5th Grade Classes',
         description: '5th grade garden session (both classes). Open for volunteer leads!',
         type: 'class',
-        start_time: `${dateStr}T12:00:00`,
-        end_time: `${dateStr}T13:50:00`,
+        start_time_expr: `'${dateStr} 12:00:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
+        end_time_expr: `'${dateStr} 13:50:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
         max_volunteers: 3
       });
     }
@@ -145,8 +139,8 @@ while (cur <= endDate) {
         title: 'Ponkey Class Garden',
         description: 'Bi-weekly garden class (1st & 3rd Friday). Class Lead: Rebecca Witmer',
         type: 'class',
-        start_time: `${dateStr}T14:00:00`,
-        end_time: `${dateStr}T14:45:00`,
+        start_time_expr: `'${dateStr} 14:00:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
+        end_time_expr: `'${dateStr} 14:45:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
         max_volunteers: 2
       });
     }
@@ -157,8 +151,8 @@ while (cur <= endDate) {
         title: 'LaMacchia Class Garden',
         description: 'Bi-weekly garden class (2nd & 4th Friday). Helper: Grandma volunteer (need class lead)',
         type: 'class',
-        start_time: `${dateStr}T14:00:00`,
-        end_time: `${dateStr}T14:40:00`,
+        start_time_expr: `'${dateStr} 14:00:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
+        end_time_expr: `'${dateStr} 14:40:00'::timestamp AT TIME ZONE 'America/Los_Angeles'`,
         max_volunteers: 2
       });
     }
@@ -170,16 +164,17 @@ while (cur <= endDate) {
 
 // Generate SQL
 let sql = `-- Full School Year Schedule (Sept 2026 - June 2027) generated from Google Sheet\n`;
-sql += `-- Clear existing generated class shifts if desired, or insert:\n\n`;
+sql += `-- Clear previous class shifts to ensure exact California local times:\n`;
+sql += `DELETE FROM shifts WHERE type = 'class';\n\n`;
 sql += `INSERT INTO shifts (title, description, type, start_time, end_time, max_volunteers)\nVALUES\n`;
 
 const values = shifts.map(s => {
   const title = s.title.replace(/'/g, "''");
   const desc = s.description.replace(/'/g, "''");
-  return `  ('${title}', '${desc}', '${s.type}', '${s.start_time}', '${s.end_time}', ${s.max_volunteers})`;
+  return `  ('${title}', '${desc}', '${s.type}', ${s.start_time_expr}, ${s.end_time_expr}, ${s.max_volunteers})`;
 }).join(',\n');
 
 sql += values + ';\n';
 
 fs.writeFileSync(path.join(__dirname, '..', 'seed_school_year_schedule.sql'), sql);
-console.log(`Generated ${shifts.length} shift entries in seed_school_year_schedule.sql`);
+console.log(`Generated ${shifts.length} shift entries in seed_school_year_schedule.sql with California timezone conversions.`);
